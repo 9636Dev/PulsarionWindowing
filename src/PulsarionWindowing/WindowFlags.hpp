@@ -18,6 +18,7 @@ namespace Pulsarion::Windowing
         Visible = 1 << 5, // Initially visible
         AlwaysOnTop = 1 << 6, // WS_EX_TOPMOST
         Caption = TitleBar | SysMenu | MinimizeButton | MaximizeButton,
+        DefaultNoVisible = Caption,
         Default = Caption | Visible
     };
 

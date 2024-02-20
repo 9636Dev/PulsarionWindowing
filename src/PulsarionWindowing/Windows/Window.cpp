@@ -1,5 +1,4 @@
 #include "Window.hpp"
-#include <chrono>
 #include <functional>
 
 namespace Pulsarion::Windowing
@@ -40,10 +39,10 @@ namespace Pulsarion::Windowing
             m_WindowClassName.c_str(),
             creationData.Title.c_str(),
             style,
-            creationData.X == creationData.DefaultX ? CW_USEDEFAULT : static_cast<int>(creationData.X),
-            creationData.Y == creationData.DefaultY ? CW_USEDEFAULT : static_cast<int>(creationData.Y),
-            creationData.Width == creationData.DefaultWidth ? CW_USEDEFAULT : static_cast<int>(creationData.Width),
-            creationData.Height == creationData.DefaultHeight ? CW_USEDEFAULT : static_cast<int>(creationData.Height),
+            creationData.X == WindowCreationData::Default ? CW_USEDEFAULT : static_cast<int>(creationData.X),
+            creationData.Y == WindowCreationData::Default ? CW_USEDEFAULT : static_cast<int>(creationData.Y),
+            creationData.Width == WindowCreationData::Default ? CW_USEDEFAULT : static_cast<int>(creationData.Width),
+            creationData.Height == WindowCreationData::Default ? CW_USEDEFAULT : static_cast<int>(creationData.Height),
             nullptr,
             nullptr,
             GetModuleHandle(nullptr),
@@ -52,6 +51,8 @@ namespace Pulsarion::Windowing
 
         if (!m_WindowHandle)
             return; // The creation function will handle this
+
+        // Set VSync with windows api
     }
 
     void WindowsWindow::SetVisible(bool visible)
@@ -61,6 +62,7 @@ namespace Pulsarion::Windowing
 
     void WindowsWindow::PollEvents()
     {
+        m_Data.LimitedEvents.clear();
         MSG msg = {};
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
@@ -74,14 +76,26 @@ namespace Pulsarion::Windowing
         return m_Data.ShouldClose;
     }
 
+    void WindowsWindow::SetShouldClose(bool shouldClose)
+    {
+        m_Data.ShouldClose = shouldClose;
+    }
+
     WindowsWindow::~WindowsWindow()
     {
+        PostQuitMessage(0);
         DestroyWindow(m_WindowHandle);
         UnregisterClass(m_WindowClassName.c_str(), GetModuleHandle(nullptr));
     }
 
     LRESULT CALLBACK WindowsWindow::WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
+        #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
+        #define LIMIT_EVENT(event) if (data->LimitEvents) { if (std::find(data->LimitedEvents.begin(), data->LimitedEvents.end(), event) == data->LimitedEvents.end()) { data->LimitedEvents.push_back(event); } else break; }
+        #else
+        #define LIMIT_EVENT(event)
+        #endif
+
         switch (msg)
         {
         case WM_CREATE:
@@ -89,12 +103,44 @@ namespace Pulsarion::Windowing
             auto* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
             auto* myData = reinterpret_cast<WindowsWindow::Data*>(pCreate->lpCreateParams);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)myData);
-        }
-        break;
-        case WM_CLOSE:
-            PostQuitMessage(0);
-            ((WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA))->ShouldClose = true;
             break;
+        }
+        case WM_SHOWWINDOW:
+        {
+            auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+            if (data->OnWindowVisibility)
+                data->OnWindowVisibility(wParam);
+            break;
+        }
+        case WM_CLOSE: {
+            auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+            if (data->OnClose)
+                data->ShouldClose = data->OnClose();
+            else
+                data->ShouldClose = true;
+            break;
+        }
+        case WM_SETFOCUS: {
+            auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+
+            if (data->OnFocus)
+                data->OnFocus(true);
+            break;
+        }
+        case WM_KILLFOCUS: {
+            auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+
+            if (data->OnFocus)
+                data->OnFocus(false);
+            break;
+        }
+        case WM_SIZE: {
+            auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+            LIMIT_EVENT(WM_SIZE);
+            if (data->OnResize)
+                data->OnResize(LOWORD(lParam), HIWORD(lParam));
+            break;
+        }
         default:
             return DefWindowProc(hWnd, msg, wParam, lParam);
         }
