@@ -1,9 +1,11 @@
 #pragma once
 
+#include "Core.hpp"
 #include <cstdint>
 
 namespace Pulsarion::Windowing
 {
+
     enum class WindowFlags : std::uint64_t
     {
         None = 0,
@@ -19,12 +21,7 @@ namespace Pulsarion::Windowing
         Default = Caption | Visible
     };
 
-    WindowFlags operator|(WindowFlags lhs, WindowFlags rhs)
-    {
-        return static_cast<WindowFlags>(static_cast<std::uint64_t>(lhs) | static_cast<std::uint64_t>(rhs));
-    }
-    WindowFlags operator&(WindowFlags lhs, WindowFlags rhs)
-    {
-        return static_cast<WindowFlags>(static_cast<std::uint64_t>(lhs) & static_cast<std::uint64_t>(rhs));
-    }
+    PULSARION_WINDOWING_API WindowFlags operator|(WindowFlags lhs, WindowFlags rhs);
+    PULSARION_WINDOWING_API WindowFlags operator&(WindowFlags lhs, WindowFlags rhs);
+    PULSARION_WINDOWING_API bool HasFlag(const WindowFlags& flags, const WindowFlags& flag);
 }

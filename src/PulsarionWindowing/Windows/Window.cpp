@@ -9,11 +9,6 @@ namespace Pulsarion::Windowing
         return "PulsarionWindow" + std::to_string(counter++);
     }
 
-    inline static bool HasFlag(const WindowFlags& flags, const WindowFlags& flag)
-    {
-        return (static_cast<std::underlying_type_t<WindowFlags>>(flags) & static_cast<std::underlying_type_t<WindowFlags>>(flag)) != 0;
-    }
-
     WindowsWindow::WindowsWindow(WindowCreationData& creationData)
     {
         m_Data = {};

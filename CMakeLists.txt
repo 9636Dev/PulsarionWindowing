@@ -7,6 +7,7 @@ set(PULSARION_WINDOWING_SOURCES
     src/PulsarionWindowing/Core.hpp
     src/PulsarionWindowing/Window.hpp # Base window class
     src/PulsarionWindowing/WindowFlags.hpp
+    src/PulsarionWindowing/WindowFlags.cpp
 )
 
 # If it is windows
@@ -15,7 +16,7 @@ if (WIN32)
         src/PulsarionWindowing/Windows/Window.cpp
         src/PulsarionWindowing/Windows/Window.hpp
     )
-elseif (DARWIN)
+elseif (APPLE)
     set(PULSARION_WINDOWING_PLATFORM_SPECIFIC_SOURCES
         src/PulsarionWindowing/MacOS/Window.mm
         src/PulsarionWindowing/MacOS/Window.hpp
@@ -42,6 +43,14 @@ if (PULSARION_LIBRARY_TYPE STREQUAL "SHARED")
 endif()
 
 target_include_directories(PulsarionWindowing PUBLIC src)
+
+# Platform specific libraries
+if (WIN32)
+    target_link_libraries(PulsarionWindowing PUBLIC user32)
+elseif (APPLE)
+    target_link_libraries(PulsarionWindowing PUBLIC "-framework Cocoa")
+#    target_link_libraries(PulsarionWindowing PUBLIC "-framework AppKit")
+endif()
 
 # We only require our own libraries
 add_dependencies(PulsarionWindowing PulsarionCore)
