@@ -41,21 +41,15 @@ namespace Pulsarion::Windowing
     private:
         static LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-        struct Data
+        struct Data : WindowEvents
         {
         public:
             bool ShouldClose = false;
             void* UserData = nullptr;
             #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
             bool LimitEvents = false;
-            std::vector<UINT> LimitedEvents; // We use this as a set
+            std::vector<UINT> LimitedEvents = {}; // We use this as a set
             #endif
-
-            // --- Event Callbacks ---
-            std::function<bool()> OnClose = nullptr;
-            std::function<void(bool)> OnWindowVisibility = nullptr;
-            std::function<void(bool)> OnFocus = nullptr;
-            std::function<void(std::uint32_t, std::uint32_t)> OnResize = nullptr;
 
             Data() = default;
         };

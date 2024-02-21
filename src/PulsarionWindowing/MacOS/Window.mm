@@ -8,23 +8,19 @@
 
 namespace Pulsarion::Windowing
 {
-    static bool DefaultWindowCloseCallback() { return true; }
-    static void DefaultVoidFunction() {}
-    template<typename T>
-    static void DefaultFunction(T _) {}
-
-    struct CocoaWindowState
+    struct CocoaWindowState : WindowEvents
     {
         bool CloseRequested = false; // This is when the user clicks the close button or Cmd+Q
         void* UserData = nullptr;
 
-        // --- Events ---
-
-        std::function<bool()> OnClose = DefaultWindowCloseCallback;
-        std::function<void()> OnWindowCreated = DefaultVoidFunction;
-
-
         CocoaWindowState() = default;
+
+        #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
+        bool LimitEvents = false;
+        std::uint64_t LimitedEvents = 0; // A bitmap is much more efficient,
+        constexpr static std::uint32_t WINDOW_RESIZE_EVENT = 1;
+        #endif
+
     };
 
     //NOLINTNEXTLINE We need to keep track of the windows, so it has to be non-const and global
@@ -47,13 +43,80 @@ namespace Pulsarion::Windowing
 
 @implementation PulsarionWindowDelegate
 - (BOOL)windowShouldClose:(id)sender {
-    for (auto& window : Pulsarion::Windowing::s_Windows)
-    {
-        if (window.first != sender)
-            continue;
-        window.second->CloseRequested = window.second->OnClose();
-    }
+    auto window = std::find_if(Pulsarion::Windowing::s_Windows.begin(), Pulsarion::Windowing::s_Windows.end(), [sender](const auto& pair) { return pair.first == sender; });
+    if (window == Pulsarion::Windowing::s_Windows.end())
+        return TRUE; // If there is no window, we should close it
+
+    if (window->second->OnClose)
+        window->second->CloseRequested = window->second->OnClose(window->second->UserData);
+    else
+        window->second->CloseRequested = TRUE;
+
     return FALSE;
+}
+
+- (void)windowDidResize:(NSNotification *)notification {
+    auto window = std::find_if(Pulsarion::Windowing::s_Windows.begin(), Pulsarion::Windowing::s_Windows.end(), [notification](const auto& pair) { return pair.first == [notification object]; });
+    if (window == Pulsarion::Windowing::s_Windows.end())
+        return;
+
+    #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
+    if (window->second->LimitEvents)
+    {
+        if ((window->second->LimitedEvents & window->second->WINDOW_RESIZE_EVENT) == 0)
+            return;
+        window->second->LimitedEvents |= window->second->WINDOW_RESIZE_EVENT;
+    }
+    #endif
+
+    if (window->second->OnResize)
+    {
+        NSRect frame = [[notification object] frame];
+        window->second->OnResize(window->second->UserData, static_cast<std::uint32_t>(frame.size.width), static_cast<std::uint32_t>(frame.size.height));
+    }
+}
+
+- (void)windowWillStartLiveResize:(NSNotification *)notification {
+    auto window = std::find_if(Pulsarion::Windowing::s_Windows.begin(), Pulsarion::Windowing::s_Windows.end(), [notification](const auto& pair) { return pair.first == [notification object]; });
+    if (window == Pulsarion::Windowing::s_Windows.end())
+        return;
+
+    if (window->second->BeforeResize)
+    {
+        NSRect frame = [[notification object] frame];
+        window->second->BeforeResize(window->second->UserData);
+    }
+}
+
+- (void)windowDidBecomeMain:(NSNotification *)notification {
+    auto window = std::find_if(Pulsarion::Windowing::s_Windows.begin(), Pulsarion::Windowing::s_Windows.end(), [notification](const auto& pair) { return pair.first == [notification object]; });
+    if (window == Pulsarion::Windowing::s_Windows.end())
+        return;
+
+    if (window->second->OnFocus)
+        window->second->OnFocus(window->second->UserData, true);
+}
+
+- (void)windowDidResignMain:(NSNotification *)notification {
+    auto window = std::find_if(Pulsarion::Windowing::s_Windows.begin(), Pulsarion::Windowing::s_Windows.end(), [notification](const auto& pair) { return pair.first == [notification object]; });
+    if (window == Pulsarion::Windowing::s_Windows.end())
+        return;
+
+    if (window->second->OnFocus)
+        window->second->OnFocus(window->second->UserData, false);
+}
+
+
+- (void)windowDidMove:(NSNotification *)notification {
+    auto window = std::find_if(Pulsarion::Windowing::s_Windows.begin(), Pulsarion::Windowing::s_Windows.end(), [notification](const auto& pair) { return pair.first == [notification object]; });
+    if (window == Pulsarion::Windowing::s_Windows.end())
+        return;
+
+    if (window->second->OnMove)
+    {
+        NSRect frame = [[notification object] frame];
+        window->second->OnMove(window->second->UserData, static_cast<std::uint32_t>(frame.origin.x), static_cast<std::uint32_t>(frame.origin.y));
+    }
 }
 @end
 
@@ -88,16 +151,18 @@ namespace Pulsarion::Windowing
                 if (HasFlag(creationData.Flags, WindowFlags::Resizable))
                     styles |= NSWindowStyleMaskResizable;
 
-                constexpr auto Default = WindowCreationData::DefaultX;
-                CGFloat x = creationData.X == Default ? 0 : static_cast<CGFloat>(creationData.X);
-                CGFloat y = creationData.Y == Default ? 0 : static_cast<CGFloat>(creationData.Y);
-                CGFloat width = creationData.Width == Default ? 1280 : static_cast<CGFloat>(creationData.Width);
-                CGFloat height = creationData.Height == Default ? 720 : static_cast<CGFloat>(creationData.Height);
+                CGFloat x = creationData.X == WindowCreationData::Default ? 0 : static_cast<CGFloat>(creationData.X);
+                CGFloat y = creationData.Y == WindowCreationData::Default ? 0 : static_cast<CGFloat>(creationData.Y);
+                CGFloat width = creationData.Width == WindowCreationData::Default ? 1280 : static_cast<CGFloat>(creationData.Width);
+                CGFloat height = creationData.Height == WindowCreationData::Default ? 720 : static_cast<CGFloat>(creationData.Height);
 
                 NSRect frame = NSMakeRect(x, y, width, height);
                 m_WindowDelegate = [[PulsarionWindowDelegate alloc] init];
                 m_Window = [[NSWindow alloc] initWithContentRect:frame styleMask:styles backing:NSBackingStoreBuffered defer:NO];
                 [m_Window setDelegate:m_WindowDelegate];
+
+                if (HasFlag(creationData.Flags, WindowFlags::AlwaysOnTop))
+                    [m_Window setLevel:NSFloatingWindowLevel];
 
                 s_Windows.emplace_back(m_Window,  m_State);
                 SetTitle(creationData.Title);
@@ -118,6 +183,21 @@ namespace Pulsarion::Windowing
             }
         }
 
+        inline void SetVisible(bool visible) const
+        {
+            if (visible == [m_Window isVisible])
+                return;
+            @autoreleasepool {
+                if (visible)
+                    [m_Window makeKeyAndOrderFront:nil];
+                else
+                    [m_Window orderOut:nil];
+
+                if (m_State->OnWindowVisibility)
+                    m_State->OnWindowVisibility(m_State->UserData, visible);
+            }
+        }
+
         inline void SetTitle(const std::string& title) const
         {
             @autoreleasepool {
@@ -125,8 +205,18 @@ namespace Pulsarion::Windowing
             }
         }
 
+        [[nodiscard]] inline std::string GetTitle() const
+        {
+            @autoreleasepool {
+                return [[m_Window title] UTF8String];
+            }
+        }
+
         inline void PollEvents() const
         {
+            #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
+            m_State->LimitedEvents = 0;
+            #endif
             @autoreleasepool {
                 NSEvent* event;
                 do
@@ -152,6 +242,7 @@ namespace Pulsarion::Windowing
 
     void CocoaWindow::SetVisible(bool visible)
     {
+        m_Impl->SetVisible(visible);
     }
 
     void CocoaWindow::PollEvents()
@@ -162,6 +253,106 @@ namespace Pulsarion::Windowing
     bool CocoaWindow::ShouldClose() const
     {
         return m_Impl->m_State->CloseRequested;
+    }
+
+    void CocoaWindow::SetShouldClose(bool shouldClose)
+    {
+        m_Impl->m_State->CloseRequested = shouldClose;
+    }
+
+    void CocoaWindow::SetTitle(const std::string& title)
+    {
+        m_Impl->SetTitle(title);
+    }
+
+    std::optional<std::string> CocoaWindow::GetTitle() const
+    {
+        return m_Impl->GetTitle();
+    }
+
+    void* CocoaWindow::GetNativeWindow() const
+    {
+        return m_Impl->m_Window;
+    }
+
+    void CocoaWindow::LimitEvents(bool limited)
+    {
+        m_Impl->m_State->LimitEvents = limited;
+    }
+
+    bool CocoaWindow::IsLimitingEvents() const
+    {
+        return m_Impl->m_State->LimitEvents;
+    }
+
+    void CocoaWindow::SetOnClose(Window::CloseCallback&& callback)
+    {
+        m_Impl->m_State->OnClose = std::move(callback);
+    }
+
+    Window::CloseCallback CocoaWindow::GetOnClose() const
+    {
+        return m_Impl->m_State->OnClose;
+    }
+
+    void CocoaWindow::SetOnWindowVisibility(Window::VisibilityCallback&& callback)
+    {
+        m_Impl->m_State->OnWindowVisibility = std::move(callback);
+    }
+
+    Window::VisibilityCallback CocoaWindow::GetOnWindowVisibility() const
+    {
+        return m_Impl->m_State->OnWindowVisibility;
+    }
+
+    void CocoaWindow::SetOnFocus(Window::FocusCallback&& callback)
+    {
+        m_Impl->m_State->OnFocus = std::move(callback);
+    }
+
+    Window::FocusCallback CocoaWindow::GetOnFocus() const
+    {
+        return m_Impl->m_State->OnFocus;
+    }
+
+    void CocoaWindow::SetOnResize(Window::ResizeCallback&& callback)
+    {
+        m_Impl->m_State->OnResize = std::move(callback);
+    }
+
+    Window::ResizeCallback CocoaWindow::GetOnResize() const
+    {
+        return m_Impl->m_State->OnResize;
+    }
+
+    void CocoaWindow::SetOnMove(Window::MoveCallback&& callback)
+    {
+        m_Impl->m_State->OnMove = std::move(callback);
+    }
+
+    Window::MoveCallback CocoaWindow::GetOnMove() const
+    {
+        return m_Impl->m_State->OnMove;
+    }
+
+    void CocoaWindow::SetBeforeResize(Window::BeforeResizeCallback&& callback)
+    {
+        m_Impl->m_State->BeforeResize = std::move(callback);
+    }
+
+    Window::BeforeResizeCallback CocoaWindow::GetBeforeResize() const
+    {
+        return m_Impl->m_State->BeforeResize;
+    }
+
+    void CocoaWindow::SetUserData(void* userData)
+    {
+        m_Impl->m_State->UserData = userData;
+    }
+
+    void* CocoaWindow::GetUserData() const
+    {
+        return m_Impl->m_State->UserData;
     }
 
     std::shared_ptr<Window> CreateSharedWindow(WindowCreationData& creationData)

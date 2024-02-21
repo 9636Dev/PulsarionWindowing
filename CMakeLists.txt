@@ -6,8 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(PULSARION_WINDOWING_SOURCES
     src/PulsarionWindowing/Core.hpp
     src/PulsarionWindowing/Window.hpp # Base window class
+    src/PulsarionWindowing/FrameLimiter.hpp
+    src/PulsarionWindowing/FrameLimiter.cpp
     src/PulsarionWindowing/WindowFlags.hpp
     src/PulsarionWindowing/WindowFlags.cpp
+    src/PulsarionWindowing/WindowDebugger.hpp # Debugging window
 )
 
 # If it is windows
@@ -49,7 +52,6 @@ if (WIN32)
     target_link_libraries(PulsarionWindowing PUBLIC user32)
 elseif (APPLE)
     target_link_libraries(PulsarionWindowing PUBLIC "-framework Cocoa")
-#    target_link_libraries(PulsarionWindowing PUBLIC "-framework AppKit")
 endif()
 
 # We only require our own libraries
