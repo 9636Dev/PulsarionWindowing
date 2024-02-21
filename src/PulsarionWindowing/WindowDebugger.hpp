@@ -30,8 +30,9 @@ namespace Pulsarion::Windowing
     };
 
     // We use a template so additional debug options won't affect performance
-    template<DebugOptions options>
-    class DebugWindow : public Window
+    template<DebugOptions options, typename T>
+    requires std::derived_from<T, Window>
+    class DebugWindow : public T
     {
     protected:
         struct WindowData : WindowEvents
@@ -221,14 +222,14 @@ namespace Pulsarion::Windowing
 
         // --- Event Callbacks ---
 
-        void SetOnClose(CloseCallback&& onClose) override
+        void SetOnClose(Window::CloseCallback&& onClose) override
         {
             if constexpr (options.LogToggles)
                 PULSARION_LOG_TRACE("[Window::SetOnClose] Setting window close callback");
             m_State.OnClose = std::move(onClose);
         }
 
-        [[nodiscard]] CloseCallback GetOnClose() const override
+        [[nodiscard]] Window::CloseCallback GetOnClose() const override
         {
             if constexpr (options.LogCalls)
                 PULSARION_LOG_TRACE("[Window::GetOnClose] Getting window close callback");
@@ -237,7 +238,7 @@ namespace Pulsarion::Windowing
             return m_State.OnClose;
         }
 
-        void SetOnWindowVisibility(VisibilityCallback&& onWindowVisibility) override
+        void SetOnWindowVisibility(Window::VisibilityCallback&& onWindowVisibility) override
         {
             if constexpr (options.LogToggles)
                 PULSARION_LOG_TRACE("[Window::SetOnWindowVisibility] Setting window visibility callback");
@@ -247,7 +248,7 @@ namespace Pulsarion::Windowing
                 m_State.OnWindowVisibility = std::move(onWindowVisibility);
         }
 
-        [[nodiscard]] VisibilityCallback GetOnWindowVisibility() const override
+        [[nodiscard]] Window::VisibilityCallback GetOnWindowVisibility() const override
         {
             if constexpr (options.LogCalls)
                 PULSARION_LOG_TRACE("[Window::GetOnWindowVisibility] Getting window visibility callback");
@@ -256,7 +257,7 @@ namespace Pulsarion::Windowing
             return m_State.OnWindowVisibility;
         }
 
-        void SetOnFocus(FocusCallback&& onFocus) override
+        void SetOnFocus(Window::FocusCallback&& onFocus) override
         {
             if constexpr (options.LogToggles)
                 PULSARION_LOG_TRACE("[Window::SetOnFocus] Setting window focus callback");
@@ -266,7 +267,7 @@ namespace Pulsarion::Windowing
                 m_State.OnFocus = std::move(onFocus);
         }
 
-        [[nodiscard]] FocusCallback GetOnFocus() const override
+        [[nodiscard]] Window::FocusCallback GetOnFocus() const override
         {
             if constexpr (options.LogCalls)
                 PULSARION_LOG_TRACE("[Window::GetOnFocus] Getting window focus callback");
@@ -275,7 +276,7 @@ namespace Pulsarion::Windowing
             return m_State.OnFocus;
         }
 
-        void SetOnResize(ResizeCallback&& onResize) override
+        void SetOnResize(Window::ResizeCallback&& onResize) override
         {
             if constexpr (options.LogToggles)
                 PULSARION_LOG_TRACE("[Window::SetOnResize] Setting window resize callback");
@@ -285,7 +286,7 @@ namespace Pulsarion::Windowing
                 m_State.OnResize = std::move(onResize);
         }
 
-        [[nodiscard]] ResizeCallback GetOnResize() const override
+        [[nodiscard]] Window::ResizeCallback GetOnResize() const override
         {
             if constexpr (options.LogCalls)
                 PULSARION_LOG_TRACE("[Window::GetOnResize] Getting window resize callback");
@@ -294,7 +295,7 @@ namespace Pulsarion::Windowing
             return m_State.OnResize;
         }
 
-        void SetOnMove(MoveCallback&& onMove) override
+        void SetOnMove(Window::MoveCallback&& onMove) override
         {
             if constexpr (options.LogToggles)
                 PULSARION_LOG_TRACE("[Window::SetOnMove] Setting window move callback");
@@ -304,7 +305,7 @@ namespace Pulsarion::Windowing
                 m_State.OnMove = std::move(onMove);
         }
 
-        [[nodiscard]] MoveCallback GetOnMove() const override
+        [[nodiscard]] Window::MoveCallback GetOnMove() const override
         {
             if constexpr (options.LogCalls)
                 PULSARION_LOG_TRACE("[Window::GetOnMove] Getting window move callback");
@@ -313,7 +314,7 @@ namespace Pulsarion::Windowing
             return m_State.OnMove;
         }
 
-        void SetBeforeResize(BeforeResizeCallback&& beforeResize) override
+        void SetBeforeResize(Window::BeforeResizeCallback&& beforeResize) override
         {
             if constexpr (options.LogToggles)
                 PULSARION_LOG_TRACE("[Window::SetBeforeResize] Setting window before resize callback");
@@ -323,7 +324,7 @@ namespace Pulsarion::Windowing
                 m_State.BeforeResize = std::move(beforeResize);
         }
 
-        [[nodiscard]] BeforeResizeCallback GetBeforeResize() const override
+        [[nodiscard]] Window::BeforeResizeCallback GetBeforeResize() const override
         {
             if constexpr (options.LogCalls)
                 PULSARION_LOG_TRACE("[Window::GetBeforeResize] Getting window before resize callback");
@@ -350,6 +351,13 @@ namespace Pulsarion::Windowing
                 return m_Window->GetUserData(); // We don't use the state
 
             return m_State.UserData;
+        }
+
+        [[nodiscard]] void* GetNativeWindow() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetNativeWindow] Getting window native window");
+            return m_Window->GetNativeWindow();
         }
 
     private:

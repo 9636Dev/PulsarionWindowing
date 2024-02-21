@@ -4,7 +4,6 @@
 
 #include <Windows.h>
 #include <string>
-#include <functional>
 #include <vector>
 
 namespace Pulsarion::Windowing
@@ -18,19 +17,27 @@ namespace Pulsarion::Windowing
         ~WindowsWindow() override;
 
         inline void SetVisible(bool visible) override;
+        void SetTitle(const std::string& title) override;
+        [[nodiscard]] std::optional<std::string> GetTitle() const override;
         inline void PollEvents() override;
         [[nodiscard]] inline bool ShouldClose() const override;
         inline void SetShouldClose(bool shouldClose) override;
+        [[nodiscard]] void* GetNativeWindow() const override { return m_WindowHandle; }
 
         // --- Event Callbacks ---
         void SetOnClose(CloseCallback&& onClose) override { m_Data.OnClose = std::move(onClose); }
-        [[nodiscard]] const CloseCallback& GetOnClose() const override { return m_Data.OnClose; }
-        void SetOnWindowVisibility(WindowVisibilityCallback&& onWindowVisibility) override { m_Data.OnWindowVisibility = std::move(onWindowVisibility); }
-        [[nodiscard]] const WindowVisibilityCallback& GetOnWindowVisibility() const override { return m_Data.OnWindowVisibility; }
+        [[nodiscard]] CloseCallback GetOnClose() const override { return m_Data.OnClose; }
+        void SetOnWindowVisibility(VisibilityCallback&& onWindowVisibility) override { m_Data.OnWindowVisibility = std::move(onWindowVisibility); }
+        [[nodiscard]] VisibilityCallback GetOnWindowVisibility() const override { return m_Data.OnWindowVisibility; }
         void SetOnFocus(FocusCallback&& onFocus) override { m_Data.OnFocus = std::move(onFocus); }
-        [[nodiscard]] const FocusCallback& GetOnFocus() const override { return m_Data.OnFocus; }
+        [[nodiscard]] FocusCallback GetOnFocus() const override { return m_Data.OnFocus; }
         void SetOnResize(ResizeCallback&& onResize) override { m_Data.OnResize = std::move(onResize); }
-        [[nodiscard]] const ResizeCallback& GetOnResize() const override { return m_Data.OnResize; }
+        [[nodiscard]] ResizeCallback GetOnResize() const override { return m_Data.OnResize; }
+        void SetOnMove(MoveCallback&& onMove) override { m_Data.OnMove = std::move(onMove); }
+        [[nodiscard]] MoveCallback GetOnMove() const override { return m_Data.OnMove; }
+        void SetBeforeResize(BeforeResizeCallback&& beforeResize) override { m_Data.BeforeResize = std::move(beforeResize); }
+        [[nodiscard]] BeforeResizeCallback GetBeforeResize() const override { return m_Data.BeforeResize; }
+
         void SetUserData(void* userData) override { m_Data.UserData = userData; }
         [[nodiscard]] void* GetUserData() const override { return m_Data.UserData; }
 
