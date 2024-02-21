@@ -104,6 +104,30 @@ namespace Pulsarion::Windowing
                 if (state->BeforeResize)
                     state->BeforeResize(data);
             });
+
+            m_Window->SetOnMinimize([this](void* data)
+            {
+                PULSARION_LOG_TRACE("[Window::OnMinimize] Window minimize callback called");
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnMinimize)
+                    state->OnMinimize(data);
+            });
+
+            m_Window->SetOnMaximize([this](void* data)
+            {
+                PULSARION_LOG_TRACE("[Window::OnMaximize] Window maximize callback called");
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnMaximize)
+                    state->OnMaximize(data);
+            });
+
+            m_Window->SetOnRestore([this](void* data)
+            {
+                PULSARION_LOG_TRACE("[Window::OnRestore] Window restore callback called");
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnRestore)
+                    state->OnRestore(data);
+            });
         }
 
 
@@ -331,6 +355,63 @@ namespace Pulsarion::Windowing
             if constexpr (!options.LogEvents)
                 return m_Window->GetBeforeResize();
             return m_State.BeforeResize;
+        }
+
+        void SetOnMinimize(Window::MinimizeCallback&& onMinimize) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetMinimize] Setting window minimize callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnMinimize(std::move(onMinimize));
+            else
+                m_State.OnMinimize = std::move(onMinimize);
+        }
+
+        [[nodiscard]] Window::MinimizeCallback GetOnMinimize() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetMinimize] Getting window minimize callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnMinimize();
+            return m_State.OnMinimize;
+        }
+
+        void SetOnMaximize(Window::MaximizeCallback&& onMaximize) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetMaximize] Setting window maximize callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnMaximize(std::move(onMaximize));
+            else
+                m_State.OnMaximize = std::move(onMaximize);
+        }
+
+        [[nodiscard]] Window::MaximizeCallback GetOnMaximize() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetMaximize] Getting window maximize callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnMaximize();
+            return m_State.OnMaximize;
+        }
+
+        void SetOnRestore(Window::RestoreCallback&& onRestore) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetRestore] Setting window restore callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnRestore(std::move(onRestore));
+            else
+                m_State.OnRestore = std::move(onRestore);
+        }
+
+        [[nodiscard]] Window::RestoreCallback GetOnRestore() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetRestore] Getting window restore callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnRestore();
+            return m_State.OnRestore;
         }
 
         void SetUserData(void* userData) override

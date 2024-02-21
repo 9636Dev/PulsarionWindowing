@@ -156,10 +156,27 @@ namespace Pulsarion::Windowing
         }
         case WM_SIZE: {
             auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-            LIMIT_EVENT(WM_SIZE);
-            if (data->OnResize)
-                data->OnResize(data->UserData, LOWORD(lParam), HIWORD(lParam));
-            break;
+
+            switch (wParam)
+            {
+            case SIZE_MINIMIZED:
+                if (data->OnMinimize)
+                    data->OnMinimize(data->UserData);
+                break;
+            case SIZE_MAXIMIZED:
+                if (data->OnMaximize)
+                    data->OnMaximize(data->UserData);
+                break;
+            case SIZE_RESTORED:
+                if (data->OnRestore)
+                    data->OnRestore(data->UserData);
+                break;
+            default:
+                LIMIT_EVENT(WM_SIZE);
+                if (data->OnResize)
+                    data->OnResize(data->UserData, LOWORD(lParam), HIWORD(lParam));
+                break;
+            }
         }
         case WM_MOVE: {
             auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
@@ -167,6 +184,10 @@ namespace Pulsarion::Windowing
             if (data->OnMove)
                 data->OnMove(data->UserData, LOWORD(lParam), HIWORD(lParam));
             break;
+        }
+        case WM_SYSCOMMAND: {
+            // TODO: In the future we have a BeforeMinimize event and BeforeMaximize event
+            return DefWindowProc(hWnd, msg, wParam, lParam);
         }
         default:
             return DefWindowProc(hWnd, msg, wParam, lParam);

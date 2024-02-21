@@ -26,8 +26,6 @@ elseif (APPLE)
     )
 endif()
 
-message(STATUS "PULSARION_Windowing Sources: ${PULSARION_WINDOWING_PLATFORM_SPECIFIC_SOURCES}")
-
 if (NOT DEFINED PULSARION_LIBRARY_TYPE)
     message(FATAL_ERROR "PULSARION_LIBRARY_TYPE is not defined, please include PulsarionCore first!")
     return()

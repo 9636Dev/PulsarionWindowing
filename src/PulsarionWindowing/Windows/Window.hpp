@@ -37,6 +37,12 @@ namespace Pulsarion::Windowing
         [[nodiscard]] MoveCallback GetOnMove() const override { return m_Data.OnMove; }
         void SetBeforeResize(BeforeResizeCallback&& beforeResize) override { m_Data.BeforeResize = std::move(beforeResize); }
         [[nodiscard]] BeforeResizeCallback GetBeforeResize() const override { return m_Data.BeforeResize; }
+        void SetOnMinimize(MinimizeCallback&& onMinimize) override { m_Data.OnMinimize = std::move(onMinimize); }
+        [[nodiscard]] MinimizeCallback GetOnMinimize() const override { return m_Data.OnMinimize; }
+        void SetOnMaximize(MaximizeCallback&& onMaximize) override { m_Data.OnMaximize = std::move(onMaximize); }
+        [[nodiscard]] MaximizeCallback GetOnMaximize() const override { return m_Data.OnMaximize; }
+        void SetOnRestore(RestoreCallback&& onRestore) override { m_Data.OnRestore = std::move(onRestore); }
+        [[nodiscard]] RestoreCallback GetOnRestore() const override { return m_Data.OnRestore; }
 
         void SetUserData(void* userData) override { m_Data.UserData = userData; }
         [[nodiscard]] void* GetUserData() const override { return m_Data.UserData; }

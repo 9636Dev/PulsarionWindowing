@@ -32,6 +32,9 @@ namespace Pulsarion::Windowing
         using ResizeCallback = std::function<void(void*, std::uint32_t, std::uint32_t)>;
         using MoveCallback = std::function<void(void*, std::uint32_t, std::uint32_t)>;
         using BeforeResizeCallback = std::function<void(void*)>;
+        using MinimizeCallback = std::function<void(void*)>;
+        using MaximizeCallback = std::function<void(void*)>;
+        using RestoreCallback = std::function<void(void*)>;
 
         virtual void SetOnClose(CloseCallback&& onClose) = 0;
         [[nodiscard]] virtual CloseCallback GetOnClose() const = 0;
@@ -47,6 +50,12 @@ namespace Pulsarion::Windowing
         [[nodiscard]] virtual MoveCallback GetOnMove() const = 0;
         virtual void SetBeforeResize(BeforeResizeCallback&& beforeResize) = 0;
         [[nodiscard]] virtual BeforeResizeCallback GetBeforeResize() const = 0;
+        virtual void SetOnMinimize(MinimizeCallback&& onMinimize) = 0;
+        [[nodiscard]] virtual MinimizeCallback GetOnMinimize() const = 0;
+        virtual void SetOnMaximize(MaximizeCallback&& onMaximize) = 0;
+        [[nodiscard]] virtual MaximizeCallback GetOnMaximize() const = 0;
+        virtual void SetOnRestore(RestoreCallback&& onRestore) = 0;
+        [[nodiscard]] virtual RestoreCallback GetOnRestore() const = 0;
 
         #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
         virtual void LimitEvents(bool limitEvents) = 0;
@@ -62,6 +71,9 @@ namespace Pulsarion::Windowing
         Window::ResizeCallback OnResize = nullptr;
         Window::MoveCallback OnMove = nullptr;
         Window::BeforeResizeCallback BeforeResize = nullptr;
+        Window::MinimizeCallback OnMinimize = nullptr;
+        Window::MaximizeCallback OnMaximize = nullptr;
+        Window::RestoreCallback OnRestore = nullptr;
     };
 
     struct WindowCreationData
