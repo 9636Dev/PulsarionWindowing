@@ -56,7 +56,10 @@ target_include_directories(PulsarionWindowing PUBLIC src)
 
 # Platform specific libraries
 if (WIN32)
-    target_link_libraries(PulsarionWindowing PUBLIC user32)
+    target_link_libraries(PulsarionWindowing PUBLIC
+        user32
+        winmm
+    )
 elseif (APPLE)
     target_link_libraries(PulsarionWindowing PUBLIC "-framework Cocoa")
 endif()

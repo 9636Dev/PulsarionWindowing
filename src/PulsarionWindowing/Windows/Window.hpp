@@ -11,9 +11,9 @@ namespace Pulsarion::Windowing
     class PULSARION_WINDOWING_API WindowsWindow : public Window
     {
     public:
-        friend std::shared_ptr<Window> CreateSharedWindow(WindowCreationData& creationData);
-        friend std::unique_ptr<Window> CreateUniqueWindow(WindowCreationData& creationData);
-        explicit WindowsWindow(WindowCreationData& creationData);
+        friend std::shared_ptr<Window> CreateSharedWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events);
+        friend std::unique_ptr<Window> CreateUniqueWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events);
+        explicit WindowsWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config);
         ~WindowsWindow() override;
 
         inline void SetVisible(bool visible) override;
@@ -43,6 +43,10 @@ namespace Pulsarion::Windowing
         [[nodiscard]] MaximizeCallback GetOnMaximize() const override { return m_Data.OnMaximize; }
         void SetOnRestore(RestoreCallback&& onRestore) override { m_Data.OnRestore = std::move(onRestore); }
         [[nodiscard]] RestoreCallback GetOnRestore() const override { return m_Data.OnRestore; }
+        void SetOnMouseEnter(MouseEnterCallback&& onMouseEnter) override { m_Data.OnMouseEnter = std::move(onMouseEnter); }
+        [[nodiscard]] MouseEnterCallback GetOnMouseEnter() const override { return m_Data.OnMouseEnter; }
+        void SetOnMouseLeave(MouseLeaveCallback&& onMouseLeave) override { m_Data.OnMouseLeave = std::move(onMouseLeave); }
+        [[nodiscard]] MouseLeaveCallback GetOnMouseLeave() const override { return m_Data.OnMouseLeave; }
 
         void SetUserData(void* userData) override { m_Data.UserData = userData; }
         [[nodiscard]] void* GetUserData() const override { return m_Data.UserData; }
@@ -58,6 +62,7 @@ namespace Pulsarion::Windowing
         {
         public:
             bool ShouldClose = false;
+            bool TrackingMouse = false;
             void* UserData = nullptr;
             #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
             bool LimitEvents = false;

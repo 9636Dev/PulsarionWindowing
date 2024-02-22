@@ -290,33 +290,19 @@ namespace Pulsarion::Windowing
     }
 
 
-    static void SetEvents(Window& window, WindowEvents& events)
-    {
-        window.SetOnClose(std::move(events.OnClose));
-        window.SetOnWindowVisibility(std::move(events.OnWindowVisibility));
-        window.SetOnFocus(std::move(events.OnFocus));
-        window.SetOnResize(std::move(events.OnResize));
-        window.SetOnMove(std::move(events.OnMove));
-        window.SetBeforeResize(std::move(events.BeforeResize));
-        window.SetOnMinimize(std::move(events.OnMinimize));
-        window.SetOnMaximize(std::move(events.OnMaximize));
-        window.SetOnRestore(std::move(events.OnRestore));
-        window.SetOnMouseEnter(std::move(events.OnMouseEnter));
-    }
-
     std::shared_ptr<Window> CreateSharedWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events)
     {
         auto window = std::make_shared<CocoaWindow>(std::move(title), bounds, styles, config);
-        if (events)
-            SetEvents(*window, *events);
+        if (events.has_value())
+            SetWindowEvents(*window, *events);
         return window;
     }
 
     std::unique_ptr<Window> CreateUniqueWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events)
     {
         auto window = std::make_unique<CocoaWindow>(std::move(title), bounds, styles, config);
-        if (events)
-            SetEvents(*window, *events);
+        if (events.has_value())
+            SetWindowEvents(*window, *events);
         return window;
     }
 }

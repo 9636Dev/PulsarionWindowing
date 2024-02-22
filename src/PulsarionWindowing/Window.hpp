@@ -36,6 +36,7 @@ namespace Pulsarion::Windowing
         using MaximizeCallback = std::function<void(void*)>;
         using RestoreCallback = std::function<void(void*)>;
         using MouseEnterCallback = std::function<void(void*)>;
+        using MouseLeaveCallback = std::function<void(void*)>;
 
         virtual void SetOnClose(CloseCallback&& onClose) = 0;
         [[nodiscard]] virtual CloseCallback GetOnClose() const = 0;
@@ -59,6 +60,8 @@ namespace Pulsarion::Windowing
         [[nodiscard]] virtual RestoreCallback GetOnRestore() const = 0;
         virtual void SetOnMouseEnter(MouseEnterCallback&& onMouseEnter) = 0;
         [[nodiscard]] virtual MouseEnterCallback GetOnMouseEnter() const = 0;
+        virtual void SetOnMouseLeave(MouseLeaveCallback&& onMouseLeave) = 0;
+        [[nodiscard]] virtual MouseLeaveCallback GetOnMouseLeave() const = 0;
 
         #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
         virtual void LimitEvents(bool limitEvents) = 0;
@@ -78,7 +81,23 @@ namespace Pulsarion::Windowing
         Window::MaximizeCallback OnMaximize = nullptr;
         Window::RestoreCallback OnRestore = nullptr;
         Window::MouseEnterCallback OnMouseEnter = nullptr;
+        Window::MouseLeaveCallback OnMouseLeave = nullptr;
     };
+
+    inline static void SetWindowEvents(Window& window, WindowEvents& events)
+    {
+        window.SetOnClose(std::move(events.OnClose));
+        window.SetOnWindowVisibility(std::move(events.OnWindowVisibility));
+        window.SetOnFocus(std::move(events.OnFocus));
+        window.SetOnResize(std::move(events.OnResize));
+        window.SetOnMove(std::move(events.OnMove));
+        window.SetBeforeResize(std::move(events.BeforeResize));
+        window.SetOnMinimize(std::move(events.OnMinimize));
+        window.SetOnMaximize(std::move(events.OnMaximize));
+        window.SetOnRestore(std::move(events.OnRestore));
+        window.SetOnMouseEnter(std::move(events.OnMouseEnter));
+        window.SetOnMouseLeave(std::move(events.OnMouseLeave));
+    }
 
     extern PULSARION_WINDOWING_API std::shared_ptr<Window> CreateSharedWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events = std::nullopt);
     extern PULSARION_WINDOWING_API std::unique_ptr<Window> CreateUniqueWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events = std::nullopt);

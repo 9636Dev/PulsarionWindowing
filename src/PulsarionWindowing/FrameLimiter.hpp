@@ -10,7 +10,7 @@ namespace Pulsarion::Windowing
     {
     public:
         explicit FrameLimiter(std::uint32_t targetFps);
-        ~FrameLimiter() = default;
+        ~FrameLimiter();
 
         void StartFrame();
         void EndFrame(); // This is where it will sleep if needed
@@ -23,5 +23,10 @@ namespace Pulsarion::Windowing
         std::uint32_t m_TargetFps;
         std::chrono::milliseconds m_FrameTime;
         std::chrono::time_point<std::chrono::steady_clock> m_LastFrameTime;
+
+        #ifdef PULSARION_WINDOWING_USE_HIGH_RES_SLEEP
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+        static std::uint32_t s_InstanceCount; // We use this so we don't prematurely release the high resolution sleep timer when destroying FrameLimiters
+        #endif
     };
 }

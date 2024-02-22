@@ -136,6 +136,14 @@ namespace Pulsarion::Windowing
                 if (state->OnMouseEnter)
                     state->OnMouseEnter(data);
             });
+
+            m_Window->SetOnMouseLeave([](void* data)
+            {
+                PULSARION_LOG_TRACE("[Window::OnMouseLeave] Window mouse enter callback called");
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnMouseLeave)
+                    state->OnMouseLeave(data);
+            });
         }
 
 
@@ -156,7 +164,7 @@ namespace Pulsarion::Windowing
 
             PULSARION_LOG_TRACE("[Window::LogDeltaTime] Frame Reporting (last {0}ms):", deltaTime / 1000.0);
             PULSARION_LOG_TRACE("  Real delta time: {0}ms", realDeltaTimeMilliseconds);
-            PULSARION_LOG_TRACE("  Real frames per second: {0}", realFramesPerSecond);
+            PULSARION_LOG_TRACE("  Real frames per second: {0}/{1}", m_DeltaTime.FrameCount, realFramesPerSecond);
             PULSARION_LOG_TRACE("  Application delta time: {0}ms", averageMilliseconds);
             PULSARION_LOG_TRACE("  Application frames per second: {0}", averageFramesPerSecond);
 
@@ -439,6 +447,25 @@ namespace Pulsarion::Windowing
             if constexpr (!options.LogEvents)
                 return m_Window->GetOnMouseEnter();
             return m_State.OnMouseEnter;
+        }
+
+        void SetOnMouseLeave(Window::MouseLeaveCallback&& onMouseLeave) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetOnMouseLeave] Setting window mouse enter callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnMouseLeave(std::move(onMouseLeave));
+            else
+                m_State.OnMouseLeave = std::move(onMouseLeave);
+        }
+
+        [[nodiscard]] Window::MouseLeaveCallback GetOnMouseLeave() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetOnMouseLeave] Getting window mouse enter callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnMouseLeave();
+            return m_State.OnMouseLeave;
         }
 
         void SetUserData(void* userData) override

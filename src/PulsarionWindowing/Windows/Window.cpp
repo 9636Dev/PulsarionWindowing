@@ -9,7 +9,7 @@ namespace Pulsarion::Windowing
         return "PulsarionWindow" + std::to_string(counter++);
     }
 
-    WindowsWindow::WindowsWindow(WindowCreationData& creationData)
+    WindowsWindow::WindowsWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config)
     {
         m_Data = {};
         m_WindowClassName = GetUniqueName();
@@ -20,30 +20,28 @@ namespace Pulsarion::Windowing
         wc.lpszClassName = m_WindowClassName.c_str();
         RegisterClass(&wc);
 
-        DWORD style = 0;
-        if (HasFlag(creationData.Flags, WindowFlags::TitleBar))
-            style |= WS_CAPTION;
-        if (HasFlag(creationData.Flags, WindowFlags::SysMenu))
-            style |= WS_SYSMENU;
-        if (HasFlag(creationData.Flags, WindowFlags::MinimizeButton))
-            style |= WS_MINIMIZEBOX;
-        if (HasFlag(creationData.Flags, WindowFlags::MaximizeButton))
-            style |= WS_MAXIMIZEBOX;
-        if (HasFlag(creationData.Flags, WindowFlags::Resizable))
-            style |= WS_THICKFRAME;
-        if (HasFlag(creationData.Flags, WindowFlags::Visible))
-            style |= WS_VISIBLE;
-        if (HasFlag(creationData.Flags, WindowFlags::AlwaysOnTop))
-            style |= WS_EX_TOPMOST;
+        DWORD styleMask = 0;
+        if (HasFlag(styles, WindowStyles::WSCaption))
+            styleMask |= WS_CAPTION;
+        if (HasFlag(styles, WindowStyles::WSSysMenu))
+            styleMask |= WS_SYSMENU;
+        if (HasFlag(styles, WindowStyles::WSMinimizeBox))
+            styleMask |= WS_MINIMIZEBOX;
+        if (HasFlag(styles, WindowStyles::WSMaximizeBox))
+            styleMask |= WS_MAXIMIZEBOX;
+        if (HasFlag(styles, WindowStyles::WSThickFrame))
+            styleMask |= WS_THICKFRAME;
+        //if (HasFlag(styles.Flags, WindowFlags::AlwaysOnTop))
+        //    styleMask |= WS_EX_TOPMOST;
+
+        if (config.StartVisible)
+            styleMask |= WS_VISIBLE;
 
         m_WindowHandle = CreateWindow(
             m_WindowClassName.c_str(),
-            creationData.Title.c_str(),
-            style,
-            creationData.X == WindowCreationData::Default ? CW_USEDEFAULT : static_cast<int>(creationData.X),
-            creationData.Y == WindowCreationData::Default ? CW_USEDEFAULT : static_cast<int>(creationData.Y),
-            creationData.Width == WindowCreationData::Default ? CW_USEDEFAULT : static_cast<int>(creationData.Width),
-            creationData.Height == WindowCreationData::Default ? CW_USEDEFAULT : static_cast<int>(creationData.Height),
+            title.c_str(),
+            styleMask,
+            bounds.X, bounds.Y, bounds.Width, bounds.Height,
             nullptr,
             nullptr,
             GetModuleHandle(nullptr),
@@ -52,8 +50,6 @@ namespace Pulsarion::Windowing
 
         if (!m_WindowHandle)
             return; // The creation function will handle this
-
-        // Set VSync with windows api
     }
 
     void WindowsWindow::SetVisible(bool visible)
@@ -75,7 +71,7 @@ namespace Pulsarion::Windowing
         if (GetWindowText(m_WindowHandle, buffer.get(), size + 1))
         {
             PULSARION_ASSERT(buffer[size] == '\0', "The buffer should be null terminated");
-            std::string str = std::string(buffer.get());
+            return std::string(buffer.get());
         }
         return std::nullopt;
     }
@@ -185,7 +181,31 @@ namespace Pulsarion::Windowing
                 data->OnMove(data->UserData, LOWORD(lParam), HIWORD(lParam));
             break;
         }
+        case WM_MOUSEMOVE: {
+            auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+            if (!data->TrackingMouse) {
+                TRACKMOUSEEVENT tme = { sizeof(TRACKMOUSEEVENT) };
+                tme.dwFlags = TME_LEAVE;
+                tme.hwndTrack = hWnd;
+                TrackMouseEvent(&tme);
+                data->TrackingMouse = true;
+                if (data->OnMouseEnter)
+                    data->OnMouseEnter(data->UserData);
+            }
+            break;
+        }
+        case WM_MOUSELEAVE: {
+            auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+            data->TrackingMouse = false;
+            if (data->OnMouseLeave)
+                data->OnMouseLeave(data->UserData);
+            break;
+        }
+        case WM_MOUSEHOVER: {
+            break;
+        }
         case WM_SYSCOMMAND: {
+            auto* data = (WindowsWindow::Data*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
             // TODO: In the future we have a BeforeMinimize event and BeforeMaximize event
             return DefWindowProc(hWnd, msg, wParam, lParam);
         }
@@ -196,19 +216,20 @@ namespace Pulsarion::Windowing
         return 0;
     }
 
-    std::shared_ptr<Window> CreateSharedWindow(WindowCreationData& creationData)
-    {
-        auto res = std::make_shared<WindowsWindow>(creationData);
-        if (res->m_WindowHandle)
-            return res;
-        return nullptr;
+    std::shared_ptr<Window> CreateSharedWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events) {
+        auto res = std::make_shared<WindowsWindow>(std::move(title), bounds, styles, config);
+        if (!res->m_WindowHandle)
+            return nullptr;
+        if (events.has_value())
+            SetWindowEvents(*res, *events);
+        return res;
     }
 
-    std::unique_ptr<Window> CreateUniqueWindow(WindowCreationData& creationData)
+    std::unique_ptr<Window> CreateUniqueWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events)
     {
-        auto res = std::make_unique<WindowsWindow>(creationData);
-        if (res->m_WindowHandle)
-            return res;
-        return nullptr;
+        auto res = std::make_unique<WindowsWindow>(std::move(title), bounds, styles, config);
+        if (events.has_value())
+            SetWindowEvents(*res, *events);
+        return res;
     }
 }
