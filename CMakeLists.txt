@@ -8,8 +8,8 @@ set(PULSARION_WINDOWING_SOURCES
     src/PulsarionWindowing/Window.hpp # Base window class
     src/PulsarionWindowing/FrameLimiter.hpp
     src/PulsarionWindowing/FrameLimiter.cpp
-    src/PulsarionWindowing/WindowFlags.hpp
-    src/PulsarionWindowing/WindowFlags.cpp
+    src/PulsarionWindowing/WindowStyles.hpp
+    src/PulsarionWindowing/WindowStyles.cpp
     src/PulsarionWindowing/WindowDebugger.hpp # Debugging window
 )
 
@@ -21,8 +21,17 @@ if (WIN32)
     )
 elseif (APPLE)
     set(PULSARION_WINDOWING_PLATFORM_SPECIFIC_SOURCES
+        src/PulsarionWindowing/MacOS/Common.hpp
         src/PulsarionWindowing/MacOS/Window.mm
         src/PulsarionWindowing/MacOS/Window.hpp
+        src/PulsarionWindowing/MacOS/NativeWindow.mm
+        src/PulsarionWindowing/MacOS/NativeWindow.h
+        src/PulsarionWindowing/MacOS/WindowDelegate.mm
+        src/PulsarionWindowing/MacOS/WindowDelegate.h
+        src/PulsarionWindowing/MacOS/AppDelegate.mm
+        src/PulsarionWindowing/MacOS/AppDelegate.h
+        src/PulsarionWIndowing/MacOS/View.mm
+        src/PulsarionWindowing/MacOS/View.h
     )
 endif()
 

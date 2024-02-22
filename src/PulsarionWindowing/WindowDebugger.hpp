@@ -65,7 +65,7 @@ namespace Pulsarion::Windowing
                 return true;
             });
 
-            m_Window->SetOnWindowVisibility([this](void* data, bool visible)
+            m_Window->SetOnWindowVisibility([](void* data, bool visible)
             {
                 PULSARION_LOG_TRACE("[Window::OnWindowVisibility] Window visibility callback called with visibility {0}", visible);
                 const auto& state = static_cast<WindowData*>(data);
@@ -73,7 +73,7 @@ namespace Pulsarion::Windowing
                     state->OnWindowVisibility(data, visible);
             });
 
-            m_Window->SetOnFocus([this](void* data, bool focused)
+            m_Window->SetOnFocus([](void* data, bool focused)
             {
                 PULSARION_LOG_TRACE("[Window::OnFocus] Window focus callback called with focus {0}", focused);
                 const auto& state = static_cast<WindowData*>(data);
@@ -81,7 +81,7 @@ namespace Pulsarion::Windowing
                     state->OnFocus(data, focused);
             });
 
-            m_Window->SetOnResize([this](void* data, std::uint32_t width, std::uint32_t height)
+            m_Window->SetOnResize([](void* data, std::uint32_t width, std::uint32_t height)
             {
                 PULSARION_LOG_TRACE("[Window::OnResize] Window resize callback called with width {0} and height {1}", width, height);
                 const auto& state = static_cast<WindowData*>(data);
@@ -89,7 +89,7 @@ namespace Pulsarion::Windowing
                     state->OnResize(data, width, height);
             });
 
-            m_Window->SetOnMove([this](void* data, std::uint32_t x, std::uint32_t y)
+            m_Window->SetOnMove([](void* data, std::uint32_t x, std::uint32_t y)
             {
                 PULSARION_LOG_TRACE("[Window::OnMove] Window move callback called with x {0} and y {1}", x, y);
                 const auto& state = static_cast<WindowData*>(data);
@@ -97,7 +97,7 @@ namespace Pulsarion::Windowing
                     state->OnMove(data, x, y);
             });
 
-            m_Window->SetBeforeResize([this](void* data)
+            m_Window->SetBeforeResize([](void* data)
             {
                 PULSARION_LOG_TRACE("[Window::BeforeResize] Window before resize callback called");
                 const auto& state = static_cast<WindowData*>(data);
@@ -105,7 +105,7 @@ namespace Pulsarion::Windowing
                     state->BeforeResize(data);
             });
 
-            m_Window->SetOnMinimize([this](void* data)
+            m_Window->SetOnMinimize([](void* data)
             {
                 PULSARION_LOG_TRACE("[Window::OnMinimize] Window minimize callback called");
                 const auto& state = static_cast<WindowData*>(data);
@@ -113,7 +113,7 @@ namespace Pulsarion::Windowing
                     state->OnMinimize(data);
             });
 
-            m_Window->SetOnMaximize([this](void* data)
+            m_Window->SetOnMaximize([](void* data)
             {
                 PULSARION_LOG_TRACE("[Window::OnMaximize] Window maximize callback called");
                 const auto& state = static_cast<WindowData*>(data);
@@ -121,12 +121,20 @@ namespace Pulsarion::Windowing
                     state->OnMaximize(data);
             });
 
-            m_Window->SetOnRestore([this](void* data)
+            m_Window->SetOnRestore([](void* data)
             {
                 PULSARION_LOG_TRACE("[Window::OnRestore] Window restore callback called");
                 const auto& state = static_cast<WindowData*>(data);
                 if (state->OnRestore)
                     state->OnRestore(data);
+            });
+
+            m_Window->SetOnMouseEnter([](void* data)
+            {
+                PULSARION_LOG_TRACE("[Window::OnMouseEnter] Window mouse enter callback called");
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnMouseEnter)
+                    state->OnMouseEnter(data);
             });
         }
 
@@ -157,7 +165,7 @@ namespace Pulsarion::Windowing
             m_DeltaTime.LastLogTime = currentTime;
         }
     public:
-        explicit DebugWindow(WindowCreationData& data) : m_Window(CreateSharedWindow(data)), m_State()
+        explicit DebugWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config) : m_Window(CreateSharedWindow(std::move(title), bounds, styles, config)), m_State()
         {
             if constexpr (options.LogToggles)
                 PULSARION_LOG_TRACE("[Window::Window] Creating window");
@@ -412,6 +420,25 @@ namespace Pulsarion::Windowing
             if constexpr (!options.LogEvents)
                 return m_Window->GetOnRestore();
             return m_State.OnRestore;
+        }
+
+        void SetOnMouseEnter(Window::MouseEnterCallback&& onMouseEnter) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetOnMouseEnter] Setting window mouse enter callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnMouseEnter(std::move(onMouseEnter));
+            else
+                m_State.OnMouseEnter = std::move(onMouseEnter);
+        }
+
+        [[nodiscard]] Window::MouseEnterCallback GetOnMouseEnter() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetOnMouseEnter] Getting window mouse enter callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnMouseEnter();
+            return m_State.OnMouseEnter;
         }
 
         void SetUserData(void* userData) override

@@ -7,7 +7,7 @@ namespace Pulsarion::Windowing
     class CocoaWindow : public Window
     {
     public:
-        explicit CocoaWindow(WindowCreationData& creationData);
+        explicit CocoaWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config);
         ~CocoaWindow() override;
 
         void SetVisible(bool visible) override;
@@ -33,6 +33,14 @@ namespace Pulsarion::Windowing
         [[nodiscard]] MoveCallback GetOnMove() const override;
         void SetBeforeResize(BeforeResizeCallback&& callback) override;
         [[nodiscard]] BeforeResizeCallback GetBeforeResize() const override;
+        void SetOnMinimize(MinimizeCallback&& callback) override;
+        [[nodiscard]] MinimizeCallback GetOnMinimize() const override;
+        void SetOnMaximize(MaximizeCallback&& callback) override;
+        [[nodiscard]] MaximizeCallback GetOnMaximize() const override;
+        void SetOnRestore(RestoreCallback&& callback) override;
+        [[nodiscard]] RestoreCallback GetOnRestore() const override;
+        void SetOnMouseEnter(MouseEnterCallback&& callback) override;
+        [[nodiscard]] MouseEnterCallback GetOnMouseEnter() const override;
 
         void SetUserData(void* userData) override;
         [[nodiscard]] void* GetUserData() const override;
