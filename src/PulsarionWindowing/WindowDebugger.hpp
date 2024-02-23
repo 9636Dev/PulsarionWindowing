@@ -144,6 +144,22 @@ namespace Pulsarion::Windowing
                 if (state->OnMouseLeave)
                     state->OnMouseLeave(data);
             });
+
+            m_Window->SetOnMouseDown([](void* data, Point position, MouseCode button)
+            {
+                PULSARION_LOG_TRACE("[Window::OnMouseDown] Window mouse down callback called with button {0} and position ({1}, {2})", static_cast<std::uint8_t>(button), position.x, position.y);
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnMouseDown)
+                    state->OnMouseDown(data, position, button);
+            });
+
+            m_Window->SetOnMouseUp([](void* data, Point position, MouseCode button)
+            {
+                PULSARION_LOG_TRACE("[Window::OnMouseUp] Window mouse up callback called with button {0} and position ({1}, {2})", static_cast<std::uint8_t>(button), position.x, position.y);
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnMouseUp)
+                    state->OnMouseUp(data, position, button);
+            });
         }
 
 
@@ -466,6 +482,44 @@ namespace Pulsarion::Windowing
             if constexpr (!options.LogEvents)
                 return m_Window->GetOnMouseLeave();
             return m_State.OnMouseLeave;
+        }
+
+        void SetOnMouseDown(Window::MouseDownCallback&& onMouseDown) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetOnMouseDown] Setting window mouse down callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnMouseDown(std::move(onMouseDown));
+            else
+                m_State.OnMouseDown = std::move(onMouseDown);
+        }
+
+        [[nodiscard]] Window::MouseDownCallback GetOnMouseDown() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetOnMouseDown] Getting window mouse down callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnMouseDown();
+            return m_State.OnMouseDown;
+        }
+
+        void SetOnMouseUp(Window::MouseUpCallback&& onMouseUp) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetOnMouseUp] Setting window mouse up callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnMouseUp(std::move(onMouseUp));
+            else
+                m_State.OnMouseUp = std::move(onMouseUp);
+        }
+
+        [[nodiscard]] Window::MouseUpCallback GetOnMouseUp() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetOnMouseUp] Getting window mouse up callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnMouseUp();
+            return m_State.OnMouseUp;
         }
 
         void SetUserData(void* userData) override

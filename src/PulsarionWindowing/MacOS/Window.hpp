@@ -41,6 +41,12 @@ namespace Pulsarion::Windowing
         [[nodiscard]] RestoreCallback GetOnRestore() const override;
         void SetOnMouseEnter(MouseEnterCallback&& callback) override;
         [[nodiscard]] MouseEnterCallback GetOnMouseEnter() const override;
+        void SetOnMouseLeave(MouseLeaveCallback&& callback) override;
+        [[nodiscard]] MouseLeaveCallback GetOnMouseLeave() const override;
+        void SetOnMouseDown(MouseDownCallback&& callback) override;
+        [[nodiscard]] MouseDownCallback GetOnMouseDown() const override;
+        void SetOnMouseUp(MouseUpCallback&& callback) override;
+        [[nodiscard]] MouseUpCallback GetOnMouseUp() const override;
 
         void SetUserData(void* userData) override;
         [[nodiscard]] void* GetUserData() const override;

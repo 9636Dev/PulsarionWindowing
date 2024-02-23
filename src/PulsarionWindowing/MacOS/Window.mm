@@ -28,13 +28,23 @@ namespace Pulsarion::Windowing
         PulsarionWindowDelegate* m_WindowDelegate;
         PulsarionView* m_View;
         std::shared_ptr<CocoaWindowState> m_State;
+        std::shared_ptr<CocoaAppState> m_AppState;
+
+        void OnApplicationExit() const
+        {
+            m_AppState->ShouldStop = true;
+            m_State->CloseRequested = true;
+            if (m_State->OnClose)
+                m_State->OnClose(m_State->UserData);
+        }
 
         inline explicit Impl(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config)
-            : m_State(std::make_shared<CocoaWindowState>())
+            : m_State(std::make_shared<CocoaWindowState>()), m_AppState(std::make_shared<CocoaAppState>())
         {
+            m_AppState->OnClose = std::bind(&Impl::OnApplicationExit, this);
             @autoreleasepool {
                 [NSApplication sharedApplication];
-                m_AppDelegate = [[PulsarionAppDelegate alloc] init];
+                m_AppDelegate = [[PulsarionAppDelegate alloc] initWithAppState:m_AppState];
                 [[NSApplication sharedApplication] setDelegate:m_AppDelegate];
 
                 NSUInteger styleMask = 0;
@@ -54,6 +64,7 @@ namespace Pulsarion::Windowing
                 m_Window = [[PulsarionWindow alloc] initWithContentRect:frame styleMask:styleMask backing:NSBackingStoreBuffered defer:NO state:m_State];
                 m_WindowDelegate = [[PulsarionWindowDelegate alloc] initWithState:m_State];
                 m_View = [[PulsarionView alloc] initWithState:m_State];
+                NSTrackingAreaOptions options = NSTrackingActiveInKeyWindow | NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved;
 
                 [m_Window setDelegate:m_WindowDelegate];
                 [m_Window setContentView:m_View];
@@ -67,14 +78,28 @@ namespace Pulsarion::Windowing
 
                 if (![[NSRunningApplication currentApplication] isFinishedLaunching])
                     [NSApp run];
+                [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
             }
         }
 
         ~Impl()
         {
             @autoreleasepool {
-                if (m_Window != nil)
+                if (m_Window != nil) {
                     [m_Window close];
+                    [m_Window setDelegate:nil];
+                    [m_WindowDelegate release];
+                    [m_Window release];
+                }
+                // TODO: Probably keep window count and only stop the app if there are no more windows
+
+                [NSApp stop:nil];
+                [NSApp setDelegate:nil];
+                [NSApp release];
+                if (m_AppDelegate != nil)
+                    [m_AppDelegate release];
+                if (m_View != nil)
+                    [m_View release];
             }
         }
 
@@ -109,6 +134,8 @@ namespace Pulsarion::Windowing
 
         inline void PollEvents() const
         {
+            if (m_AppState->ShouldStop)
+                return; // Probably nullptr dereference if we continue
             #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
             m_State->LimitedEvents = 0;
             #endif
@@ -277,6 +304,36 @@ namespace Pulsarion::Windowing
     Window::MouseEnterCallback CocoaWindow::GetOnMouseEnter() const
     {
         return m_Impl->m_State->OnMouseEnter;
+    }
+
+    void CocoaWindow::SetOnMouseLeave(Window::MouseLeaveCallback&& callback)
+    {
+        m_Impl->m_State->OnMouseLeave = std::move(callback);
+    }
+
+    Window::MouseLeaveCallback CocoaWindow::GetOnMouseLeave() const
+    {
+        return m_Impl->m_State->OnMouseLeave;
+    }
+
+    void CocoaWindow::SetOnMouseDown(Window::MouseDownCallback&& callback)
+    {
+        m_Impl->m_State->OnMouseDown = std::move(callback);
+    }
+
+    Window::MouseDownCallback CocoaWindow::GetOnMouseDown() const
+    {
+        return m_Impl->m_State->OnMouseDown;
+    }
+
+    void CocoaWindow::SetOnMouseUp(Window::MouseUpCallback&& callback)
+    {
+        m_Impl->m_State->OnMouseUp = std::move(callback);
+    }
+
+    Window::MouseUpCallback CocoaWindow::GetOnMouseUp() const
+    {
+        return m_Impl->m_State->OnMouseUp;
     }
 
     void CocoaWindow::SetUserData(void* userData)

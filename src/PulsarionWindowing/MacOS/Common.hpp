@@ -19,4 +19,9 @@ namespace Pulsarion::Windowing
 
     };
 
+    struct CocoaAppState
+    {
+        bool ShouldStop = false;
+        std::function<void()> OnClose = nullptr;
+    };
 }

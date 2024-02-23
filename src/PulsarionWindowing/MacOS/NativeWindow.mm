@@ -15,4 +15,8 @@
     return YES;
 }
 
+- (BOOL)acceptsFirstResponder {
+    return YES;
+}
+
 @end

@@ -7,6 +7,7 @@
 
 {
     std::shared_ptr<Pulsarion::Windowing::CocoaWindowState> state;
+    NSTrackingArea* trackingArea;
 }
 
 - (void)mouseEntered:(NSEvent *)event;

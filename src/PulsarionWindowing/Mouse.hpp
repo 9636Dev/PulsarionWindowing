@@ -1,8 +1,16 @@
 #pragma once
 
+#include "Core.hpp"
+
 namespace Pulsarion::Windowing
 {
-    enum class MouseCode
+    struct Point
+    {
+        float x;
+        float y;
+    };
+
+    enum class MouseCode : std::uint8_t
     {
         Button0 = 0,
         Button1 = 1,
@@ -12,6 +20,7 @@ namespace Pulsarion::Windowing
         Button5 = 5,
         Button6 = 6,
         Button7 = 7,
+        Unknown = 255,
 
         ButtonLeft = Button0,
         ButtonRight = Button1,

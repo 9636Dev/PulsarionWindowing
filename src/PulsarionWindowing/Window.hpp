@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Core.hpp"
+#include "Mouse.hpp"
 #include "WindowStyles.hpp"
 
 #include <memory>
 #include <string>
-#include <limits>
 #include <functional>
 #include <optional>
 
@@ -37,6 +37,8 @@ namespace Pulsarion::Windowing
         using RestoreCallback = std::function<void(void*)>;
         using MouseEnterCallback = std::function<void(void*)>;
         using MouseLeaveCallback = std::function<void(void*)>;
+        using MouseDownCallback = std::function<void(void*, Point, MouseCode)>;
+        using MouseUpCallback = std::function<void(void*, Point, MouseCode)>;
 
         virtual void SetOnClose(CloseCallback&& onClose) = 0;
         [[nodiscard]] virtual CloseCallback GetOnClose() const = 0;
@@ -62,6 +64,10 @@ namespace Pulsarion::Windowing
         [[nodiscard]] virtual MouseEnterCallback GetOnMouseEnter() const = 0;
         virtual void SetOnMouseLeave(MouseLeaveCallback&& onMouseLeave) = 0;
         [[nodiscard]] virtual MouseLeaveCallback GetOnMouseLeave() const = 0;
+        virtual void SetOnMouseDown(MouseDownCallback&& onMouseDown) = 0;
+        [[nodiscard]] virtual MouseDownCallback GetOnMouseDown() const = 0;
+        virtual void SetOnMouseUp(MouseUpCallback&& onMouseUp) = 0;
+        [[nodiscard]] virtual MouseUpCallback GetOnMouseUp() const = 0;
 
         #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
         virtual void LimitEvents(bool limitEvents) = 0;
@@ -82,6 +88,8 @@ namespace Pulsarion::Windowing
         Window::RestoreCallback OnRestore = nullptr;
         Window::MouseEnterCallback OnMouseEnter = nullptr;
         Window::MouseLeaveCallback OnMouseLeave = nullptr;
+        Window::MouseDownCallback OnMouseDown = nullptr;
+        Window::MouseUpCallback OnMouseUp = nullptr;
     };
 
     inline static void SetWindowEvents(Window& window, WindowEvents& events)
@@ -97,6 +105,8 @@ namespace Pulsarion::Windowing
         window.SetOnRestore(std::move(events.OnRestore));
         window.SetOnMouseEnter(std::move(events.OnMouseEnter));
         window.SetOnMouseLeave(std::move(events.OnMouseLeave));
+        window.SetOnMouseDown(std::move(events.OnMouseDown));
+        window.SetOnMouseUp(std::move(events.OnMouseUp));
     }
 
     extern PULSARION_WINDOWING_API std::shared_ptr<Window> CreateSharedWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events = std::nullopt);
