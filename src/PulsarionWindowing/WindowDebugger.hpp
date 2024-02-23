@@ -160,6 +160,38 @@ namespace Pulsarion::Windowing
                 if (state->OnMouseUp)
                     state->OnMouseUp(data, position, button);
             });
+
+            m_Window->SetOnMouseMove([](void* data, Point position)
+            {
+                PULSARION_LOG_TRACE("[Window::OnMouseMove] Window mouse move callback called with position ({0}, {1})", position.x, position.y);
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnMouseMove)
+                    state->OnMouseMove(data, position);
+            });
+
+            m_Window->SetOnMouseWheel([](void* data, Point position, ScrollOffset offset)
+            {
+                PULSARION_LOG_TRACE("[Window::OnMouseWheel] Window mouse scroll callback called with offset ({0}, {1}) and position ({2}, {3})", offset.x, offset.y, position.x, position.y);
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnMouseWheel)
+                    state->OnMouseWheel(data, position, offset);
+            });
+
+            m_Window->SetOnKeyDown([](void* data, KeyCode key, Modifier modifier)
+            {
+                PULSARION_LOG_TRACE("[Window::OnKeyDown] Window key down callback called with key {0}, modifier {1}", static_cast<std::uint16_t>(key), static_cast<std::uint16_t>(modifier));
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnKeyDown)
+                    state->OnKeyDown(data, key, modifier);
+            });
+
+            m_Window->SetOnKeyUp([](void* data, KeyCode key, Modifier modifier)
+            {
+                PULSARION_LOG_TRACE("[Window::OnKeyUp] Window key up callback called with key {0}, modifier {1}", static_cast<std::uint16_t>(key), static_cast<std::uint16_t>(modifier));
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnKeyUp)
+                    state->OnKeyUp(data, key, modifier);
+            });
         }
 
 
@@ -520,6 +552,82 @@ namespace Pulsarion::Windowing
             if constexpr (!options.LogEvents)
                 return m_Window->GetOnMouseUp();
             return m_State.OnMouseUp;
+        }
+
+        void SetOnMouseMove(Window::MouseMoveCallback&& onMouseMove) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetOnMouseMove] Setting window mouse move callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnMouseMove(std::move(onMouseMove));
+            else
+                m_State.OnMouseMove = std::move(onMouseMove);
+        }
+
+        [[nodiscard]] Window::MouseMoveCallback GetOnMouseMove() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetOnMouseMove] Getting window mouse move callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnMouseMove();
+            return m_State.OnMouseMove;
+        }
+
+        void SetOnMouseWheel(Window::MouseWheelCallback && onMouseWheel) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetOnMouseWheel] Setting window mouse scroll callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnMouseWheel(std::move(onMouseWheel));
+            else
+                m_State.OnMouseWheel = std::move(onMouseWheel);
+        }
+
+        [[nodiscard]] Window::MouseWheelCallback GetOnMouseWheel() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetOnMouseWheel] Getting window mouse scroll callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnMouseWheel();
+            return m_State.OnMouseWheel;
+        }
+
+        void SetOnKeyDown(Window::KeyDownCallback&& onKeyDown) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetOnKeyDown] Setting window key down callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnKeyDown(std::move(onKeyDown));
+            else
+                m_State.OnKeyDown = std::move(onKeyDown);
+        }
+
+        [[nodiscard]] Window::KeyDownCallback GetOnKeyDown() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetOnKeyDown] Getting window key down callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnKeyDown();
+            return m_State.OnKeyDown;
+        }
+
+        void SetOnKeyUp(Window::KeyUpCallback&& onKeyUp) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetOnKeyUp] Setting window key up callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnKeyUp(std::move(onKeyUp));
+            else
+                m_State.OnKeyUp = std::move(onKeyUp);
+        }
+
+        [[nodiscard]] Window::KeyUpCallback GetOnKeyUp() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetOnKeyUp] Getting window key up callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnKeyUp();
+            return m_State.OnKeyUp;
         }
 
         void SetUserData(void* userData) override

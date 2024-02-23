@@ -9,6 +9,7 @@ namespace Pulsarion::Windowing
         float x;
         float y;
     };
+    using ScrollOffset = Point;
 
     enum class MouseCode : std::uint8_t
     {

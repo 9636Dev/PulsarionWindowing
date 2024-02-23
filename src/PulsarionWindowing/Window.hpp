@@ -2,6 +2,7 @@
 
 #include "Core.hpp"
 #include "Mouse.hpp"
+#include "Keyboard.hpp"
 #include "WindowStyles.hpp"
 
 #include <memory>
@@ -39,7 +40,12 @@ namespace Pulsarion::Windowing
         using MouseLeaveCallback = std::function<void(void*)>;
         using MouseDownCallback = std::function<void(void*, Point, MouseCode)>;
         using MouseUpCallback = std::function<void(void*, Point, MouseCode)>;
+        using MouseMoveCallback = std::function<void(void*, Point)>;
+        using MouseWheelCallback = std::function<void(void*, Point, ScrollOffset)>;
+        using KeyDownCallback = std::function<void(void*, KeyCode, Modifier)>;
+        using KeyUpCallback = KeyDownCallback;
 
+        // ----- Window Event Callbacks -----
         virtual void SetOnClose(CloseCallback&& onClose) = 0;
         [[nodiscard]] virtual CloseCallback GetOnClose() const = 0;
         virtual void SetOnWindowVisibility(VisibilityCallback&& onWindowVisibility) = 0;
@@ -60,6 +66,8 @@ namespace Pulsarion::Windowing
         [[nodiscard]] virtual MaximizeCallback GetOnMaximize() const = 0;
         virtual void SetOnRestore(RestoreCallback&& onRestore) = 0;
         [[nodiscard]] virtual RestoreCallback GetOnRestore() const = 0;
+
+        // ----- Mouse Event Callbacks -----
         virtual void SetOnMouseEnter(MouseEnterCallback&& onMouseEnter) = 0;
         [[nodiscard]] virtual MouseEnterCallback GetOnMouseEnter() const = 0;
         virtual void SetOnMouseLeave(MouseLeaveCallback&& onMouseLeave) = 0;
@@ -68,6 +76,16 @@ namespace Pulsarion::Windowing
         [[nodiscard]] virtual MouseDownCallback GetOnMouseDown() const = 0;
         virtual void SetOnMouseUp(MouseUpCallback&& onMouseUp) = 0;
         [[nodiscard]] virtual MouseUpCallback GetOnMouseUp() const = 0;
+        virtual void SetOnMouseMove(MouseMoveCallback&& onMouseMove) = 0;
+        [[nodiscard]] virtual MouseMoveCallback GetOnMouseMove() const = 0;
+        virtual void SetOnMouseWheel(MouseWheelCallback&& onMouseWheel) = 0;
+        [[nodiscard]] virtual MouseWheelCallback GetOnMouseWheel() const = 0;
+
+        // ----- Keyboard Event Callbacks -----
+        virtual void SetOnKeyDown(KeyDownCallback&& onKeyDown) = 0;
+        [[nodiscard]] virtual KeyDownCallback GetOnKeyDown() const = 0;
+        virtual void SetOnKeyUp(KeyUpCallback&& onKeyUp) = 0;
+        [[nodiscard]] virtual KeyUpCallback GetOnKeyUp() const = 0;
 
         #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
         virtual void LimitEvents(bool limitEvents) = 0;
@@ -90,6 +108,10 @@ namespace Pulsarion::Windowing
         Window::MouseLeaveCallback OnMouseLeave = nullptr;
         Window::MouseDownCallback OnMouseDown = nullptr;
         Window::MouseUpCallback OnMouseUp = nullptr;
+        Window::MouseMoveCallback OnMouseMove = nullptr;
+        Window::MouseWheelCallback OnMouseWheel = nullptr;
+        Window::KeyDownCallback OnKeyDown = nullptr;
+        Window::KeyUpCallback OnKeyUp = nullptr;
     };
 
     inline static void SetWindowEvents(Window& window, WindowEvents& events)
@@ -107,6 +129,10 @@ namespace Pulsarion::Windowing
         window.SetOnMouseLeave(std::move(events.OnMouseLeave));
         window.SetOnMouseDown(std::move(events.OnMouseDown));
         window.SetOnMouseUp(std::move(events.OnMouseUp));
+        window.SetOnMouseMove(std::move(events.OnMouseMove));
+        window.SetOnMouseWheel(std::move(events.OnMouseWheel));
+        window.SetOnKeyDown(std::move(events.OnKeyDown));
+        window.SetOnKeyUp(std::move(events.OnKeyUp));
     }
 
     extern PULSARION_WINDOWING_API std::shared_ptr<Window> CreateSharedWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events = std::nullopt);

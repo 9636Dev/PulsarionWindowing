@@ -47,6 +47,18 @@ namespace Pulsarion::Windowing
         [[nodiscard]] MouseEnterCallback GetOnMouseEnter() const override { return m_Data.OnMouseEnter; }
         void SetOnMouseLeave(MouseLeaveCallback&& onMouseLeave) override { m_Data.OnMouseLeave = std::move(onMouseLeave); }
         [[nodiscard]] MouseLeaveCallback GetOnMouseLeave() const override { return m_Data.OnMouseLeave; }
+        void SetOnMouseDown(MouseDownCallback&& onMouseDown) override { m_Data.OnMouseDown = std::move(onMouseDown); }
+        [[nodiscard]] MouseDownCallback GetOnMouseDown() const override { return m_Data.OnMouseDown; }
+        void SetOnMouseUp(MouseUpCallback&& onMouseUp) override { m_Data.OnMouseUp = std::move(onMouseUp); }
+        [[nodiscard]] MouseUpCallback GetOnMouseUp() const override { return m_Data.OnMouseUp; }
+        void SetOnMouseMove(MouseMoveCallback&& onMouseMove) override { m_Data.OnMouseMove = std::move(onMouseMove); }
+        [[nodiscard]] MouseMoveCallback GetOnMouseMove() const override { return m_Data.OnMouseMove; }
+        void SetOnMouseWheel(MouseWheelCallback&& onMouseWheel) override { m_Data.OnMouseWheel = std::move(onMouseWheel); }
+        [[nodiscard]] MouseWheelCallback GetOnMouseWheel() const override { return m_Data.OnMouseWheel; }
+        void SetOnKeyDown(KeyDownCallback&& onKeyDown) override { m_Data.OnKeyDown = std::move(onKeyDown); }
+        [[nodiscard]] KeyDownCallback GetOnKeyDown() const override { return m_Data.OnKeyDown; }
+        void SetOnKeyUp(KeyUpCallback&& onKeyUp) override { m_Data.OnKeyUp = std::move(onKeyUp); }
+        [[nodiscard]] KeyUpCallback GetOnKeyUp() const override { return m_Data.OnKeyUp; }
 
         void SetUserData(void* userData) override { m_Data.UserData = userData; }
         [[nodiscard]] void* GetUserData() const override { return m_Data.UserData; }

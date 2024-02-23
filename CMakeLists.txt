@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(PULSARION_WINDOWING_SOURCES
     src/PulsarionWindowing/Core.hpp
+    src/PulsarionWindowing/Mouse.hpp
+    src/PulsarionWindowing/Keyboard.hpp
+    src/PulsarionWindowing/Keyboard.cpp
     src/PulsarionWindowing/Window.hpp # Base window class
     src/PulsarionWindowing/FrameLimiter.hpp
     src/PulsarionWindowing/FrameLimiter.cpp
