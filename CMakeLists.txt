@@ -14,6 +14,7 @@ set(PULSARION_WINDOWING_SOURCES
     src/PulsarionWindowing/WindowStyles.hpp
     src/PulsarionWindowing/WindowStyles.cpp
     src/PulsarionWindowing/WindowDebugger.hpp # Debugging window
+    src/PulsarionWindowing/Lifecycle.hpp
 )
 
 # If it is windows
@@ -24,6 +25,8 @@ if (WIN32)
     )
 elseif (APPLE)
     set(PULSARION_WINDOWING_PLATFORM_SPECIFIC_SOURCES
+        src/PulsarionWindowing/MacoS/Lifecycle.h
+        src/PulsarionWindowing/MacOS/Lifecycle.mm
         src/PulsarionWindowing/MacOS/Common.hpp
         src/PulsarionWindowing/MacOS/Window.mm
         src/PulsarionWindowing/MacOS/Window.hpp

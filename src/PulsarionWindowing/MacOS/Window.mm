@@ -6,6 +6,7 @@
 #include "AppDelegate.h"
 #include "WindowDelegate.h"
 #include "NativeWindow.h"
+#include "Lifecycle.h"
 
 #include <Cocoa/Cocoa.h>
 #include <vector>
@@ -17,6 +18,8 @@ namespace Pulsarion::Windowing
 {
     class CocoaWindow::Impl
     {
+    private:
+        static std::size_t s_WindowCount;
     public:
         static CGFloat ConvertCocoaY(CGFloat y, CGFloat height)
         {
@@ -41,6 +44,7 @@ namespace Pulsarion::Windowing
         inline explicit Impl(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config)
             : m_State(std::make_shared<CocoaWindowState>()), m_AppState(std::make_shared<CocoaAppState>())
         {
+            s_WindowCount++;
             m_AppState->OnClose = std::bind(&Impl::OnApplicationExit, this);
             @autoreleasepool {
                 [NSApplication sharedApplication];
@@ -69,17 +73,15 @@ namespace Pulsarion::Windowing
                 [m_Window setDelegate:m_WindowDelegate];
                 [m_Window setContentView:m_View];
 
-                //if (HasFlag(creationData.Flags, WindowStyles::AlwaysOnTop))
-                //    [m_Window setLevel:NSFloatingWindowLevel];
                 SetTitle(title);
-
-                //if (HasFlag(creationData.Flags, WindowStyles::Visible))
-                //    [m_Window makeKeyAndOrderFront:nil];
+                if (config.StartVisible)
+                    SetVisible(true);
 
                 if (![[NSRunningApplication currentApplication] isFinishedLaunching])
+                {
+                    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
                     [NSApp run];
-
-                [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+                }
             }
         }
 
@@ -89,18 +91,10 @@ namespace Pulsarion::Windowing
                 if (m_Window != nil) {
                     [m_Window close];
                     [m_Window setDelegate:nil];
-                    [m_WindowDelegate release];
-                    [m_Window release];
                 }
-                // TODO: Probably keep window count and only stop the app if there are no more windows
 
-                [NSApp stop:nil];
-                [NSApp setDelegate:nil];
-                [NSApp release];
-                if (m_AppDelegate != nil)
-                    [m_AppDelegate release];
-                if (m_View != nil)
-                    [m_View release];
+                if (s_WindowCount == 1)
+                    [NSApp terminate:nil];
             }
         }
 
@@ -164,6 +158,8 @@ namespace Pulsarion::Windowing
             }
         }
     };
+
+    std::size_t CocoaWindow::Impl::s_WindowCount = 0;
 
     CocoaWindow::CocoaWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config)
         : m_Impl(new Impl(std::move(title), bounds, styles, config))

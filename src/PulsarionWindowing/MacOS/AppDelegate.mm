@@ -13,6 +13,14 @@
     [NSApp stop:nil]; // We want to handle the event loop ourselves
 }
 
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+    return NO; // We want to handle the event loop ourselves
+}
+
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
+    return YES; // We want to handle the event loop ourselves
+}
+
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     // We currently don't do anything here
 }
