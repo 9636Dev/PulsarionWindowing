@@ -3,6 +3,7 @@
 #include "Core.hpp"
 #include "Mouse.hpp"
 #include "Keyboard.hpp"
+#include "Cursor.hpp"
 #include "WindowStyles.hpp"
 
 #include <memory>
@@ -35,6 +36,7 @@ namespace Pulsarion::Windowing
         using BeforeResizeCallback = std::function<void(void*)>;
         using MinimizeCallback = std::function<void(void*)>;
         using MaximizeCallback = std::function<void(void*)>;
+        using FullscreenCallback = std::function<void(void*, bool)>;
         using RestoreCallback = std::function<void(void*)>;
         using MouseEnterCallback = std::function<void(void*)>;
         using MouseLeaveCallback = std::function<void(void*)>;
@@ -42,8 +44,9 @@ namespace Pulsarion::Windowing
         using MouseUpCallback = std::function<void(void*, Point, MouseCode)>;
         using MouseMoveCallback = std::function<void(void*, Point)>;
         using MouseWheelCallback = std::function<void(void*, Point, ScrollOffset)>;
-        using KeyDownCallback = std::function<void(void*, KeyCode, Modifier)>;
-        using KeyUpCallback = KeyDownCallback;
+        using KeyDownCallback = std::function<void(void*, KeyCode, Modifier, bool)>;
+        using KeyUpCallback = std::function<void(void*, KeyCode, Modifier)>;
+        using KeyTypedCallback = std::function<void(void*, char, Modifier)>;
 
         // ----- Window Event Callbacks -----
         virtual void SetOnClose(CloseCallback&& onClose) = 0;
@@ -64,6 +67,8 @@ namespace Pulsarion::Windowing
         [[nodiscard]] virtual MinimizeCallback GetOnMinimize() const = 0;
         virtual void SetOnMaximize(MaximizeCallback&& onMaximize) = 0;
         [[nodiscard]] virtual MaximizeCallback GetOnMaximize() const = 0;
+        virtual void SetOnFullscreen(FullscreenCallback&& onFullscreen) = 0;
+        [[nodiscard]] virtual FullscreenCallback GetOnFullscreen() const = 0;
         virtual void SetOnRestore(RestoreCallback&& onRestore) = 0;
         [[nodiscard]] virtual RestoreCallback GetOnRestore() const = 0;
 
@@ -86,6 +91,8 @@ namespace Pulsarion::Windowing
         [[nodiscard]] virtual KeyDownCallback GetOnKeyDown() const = 0;
         virtual void SetOnKeyUp(KeyUpCallback&& onKeyUp) = 0;
         [[nodiscard]] virtual KeyUpCallback GetOnKeyUp() const = 0;
+        virtual void SetOnKeyTyped(KeyTypedCallback&& onKeyTyped) = 0;
+        [[nodiscard]] virtual KeyTypedCallback GetOnKeyTyped() const = 0;
 
         #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
         virtual void LimitEvents(bool limitEvents) = 0;
@@ -103,6 +110,7 @@ namespace Pulsarion::Windowing
         Window::BeforeResizeCallback BeforeResize = nullptr;
         Window::MinimizeCallback OnMinimize = nullptr;
         Window::MaximizeCallback OnMaximize = nullptr;
+        Window::FullscreenCallback OnFullscreen = nullptr;
         Window::RestoreCallback OnRestore = nullptr;
         Window::MouseEnterCallback OnMouseEnter = nullptr;
         Window::MouseLeaveCallback OnMouseLeave = nullptr;
@@ -112,6 +120,7 @@ namespace Pulsarion::Windowing
         Window::MouseWheelCallback OnMouseWheel = nullptr;
         Window::KeyDownCallback OnKeyDown = nullptr;
         Window::KeyUpCallback OnKeyUp = nullptr;
+        Window::KeyTypedCallback OnKeyTyped = nullptr;
     };
 
     inline static void SetWindowEvents(Window& window, WindowEvents& events)
@@ -124,6 +133,7 @@ namespace Pulsarion::Windowing
         window.SetBeforeResize(std::move(events.BeforeResize));
         window.SetOnMinimize(std::move(events.OnMinimize));
         window.SetOnMaximize(std::move(events.OnMaximize));
+        window.SetOnFullscreen(std::move(events.OnFullscreen));
         window.SetOnRestore(std::move(events.OnRestore));
         window.SetOnMouseEnter(std::move(events.OnMouseEnter));
         window.SetOnMouseLeave(std::move(events.OnMouseLeave));
@@ -133,6 +143,7 @@ namespace Pulsarion::Windowing
         window.SetOnMouseWheel(std::move(events.OnMouseWheel));
         window.SetOnKeyDown(std::move(events.OnKeyDown));
         window.SetOnKeyUp(std::move(events.OnKeyUp));
+        window.SetOnKeyTyped(std::move(events.OnKeyTyped));
     }
 
     extern PULSARION_WINDOWING_API std::shared_ptr<Window> CreateSharedWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config, std::optional<WindowEvents> events = std::nullopt);

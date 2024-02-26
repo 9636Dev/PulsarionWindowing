@@ -84,4 +84,14 @@
     if (m_State->OnRestore)
         m_State->OnRestore(m_State->UserData);
 }
+
+- (void)windowDidEnterFullScreen:(NSNotification *)notification {
+    if (m_State->OnFullscreen)
+        m_State->OnFullscreen(m_State->UserData, true);
+}
+
+- (void)windowDidExitFullScreen:(NSNotification *)notification {
+    if (m_State->OnFullscreen)
+        m_State->OnFullscreen(m_State->UserData, false);
+}
 @end

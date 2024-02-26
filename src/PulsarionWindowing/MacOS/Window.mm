@@ -78,6 +78,7 @@ namespace Pulsarion::Windowing
 
                 if (![[NSRunningApplication currentApplication] isFinishedLaunching])
                     [NSApp run];
+
                 [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
             }
         }
@@ -129,6 +130,19 @@ namespace Pulsarion::Windowing
         {
             @autoreleasepool {
                 return [[m_Window title] UTF8String];
+            }
+        }
+
+        inline void SetCursorMode(CursorMode mode) const
+        {
+            static CursorMode currentMode = CursorMode::Normal;
+            if (mode == currentMode)
+                return;
+            @autoreleasepool {
+                if (mode == CursorMode::Normal)
+                    [NSCursor unhide];
+                else
+                    [NSCursor hide];
             }
         }
 
@@ -286,6 +300,16 @@ namespace Pulsarion::Windowing
         return m_Impl->m_State->OnMaximize;
     }
 
+    void CocoaWindow::SetOnFullscreen(Window::FullscreenCallback&& callback)
+    {
+        m_Impl->m_State->OnFullscreen = std::move(callback);
+    }
+
+    Window::FullscreenCallback CocoaWindow::GetOnFullscreen() const
+    {
+        return m_Impl->m_State->OnFullscreen;
+    }
+
     void CocoaWindow::SetOnRestore(Window::RestoreCallback&& callback)
     {
         m_Impl->m_State->OnRestore = std::move(callback);
@@ -334,6 +358,56 @@ namespace Pulsarion::Windowing
     Window::MouseUpCallback CocoaWindow::GetOnMouseUp() const
     {
         return m_Impl->m_State->OnMouseUp;
+    }
+
+    void CocoaWindow::SetOnMouseMove(Window::MouseMoveCallback&& callback)
+    {
+        m_Impl->m_State->OnMouseMove = std::move(callback);
+    }
+
+    Window::MouseMoveCallback CocoaWindow::GetOnMouseMove() const
+    {
+        return m_Impl->m_State->OnMouseMove;
+    }
+
+    void CocoaWindow::SetOnMouseWheel(Window::MouseWheelCallback&& callback)
+    {
+        m_Impl->m_State->OnMouseWheel = std::move(callback);
+    }
+
+    Window::MouseWheelCallback CocoaWindow::GetOnMouseWheel() const
+    {
+        return m_Impl->m_State->OnMouseWheel;
+    }
+
+    void CocoaWindow::SetOnKeyDown(Window::KeyDownCallback&& callback)
+    {
+        m_Impl->m_State->OnKeyDown = std::move(callback);
+    }
+
+    Window::KeyDownCallback CocoaWindow::GetOnKeyDown() const
+    {
+        return m_Impl->m_State->OnKeyDown;
+    }
+
+    void CocoaWindow::SetOnKeyUp(Window::KeyUpCallback&& callback)
+    {
+        m_Impl->m_State->OnKeyUp = std::move(callback);
+    }
+
+    Window::KeyUpCallback CocoaWindow::GetOnKeyUp() const
+    {
+        return m_Impl->m_State->OnKeyUp;
+    }
+
+    void CocoaWindow::SetOnKeyTyped(Window::KeyTypedCallback&& callback)
+    {
+        m_Impl->m_State->OnKeyTyped = std::move(callback);
+    }
+
+    Window::KeyTypedCallback CocoaWindow::GetOnKeyTyped() const
+    {
+        return m_Impl->m_State->OnKeyTyped;
     }
 
     void CocoaWindow::SetUserData(void* userData)

@@ -37,6 +37,8 @@ namespace Pulsarion::Windowing
         [[nodiscard]] MinimizeCallback GetOnMinimize() const override;
         void SetOnMaximize(MaximizeCallback&& callback) override;
         [[nodiscard]] MaximizeCallback GetOnMaximize() const override;
+        void SetOnFullscreen(FullscreenCallback&& callback) override;
+        [[nodiscard]] FullscreenCallback GetOnFullscreen() const override;
         void SetOnRestore(RestoreCallback&& callback) override;
         [[nodiscard]] RestoreCallback GetOnRestore() const override;
         void SetOnMouseEnter(MouseEnterCallback&& callback) override;
@@ -47,6 +49,16 @@ namespace Pulsarion::Windowing
         [[nodiscard]] MouseDownCallback GetOnMouseDown() const override;
         void SetOnMouseUp(MouseUpCallback&& callback) override;
         [[nodiscard]] MouseUpCallback GetOnMouseUp() const override;
+        void SetOnMouseMove(MouseMoveCallback&& callback) override;
+        [[nodiscard]] MouseMoveCallback GetOnMouseMove() const override;
+        void SetOnMouseWheel(MouseWheelCallback&& callback) override;
+        [[nodiscard]] MouseWheelCallback GetOnMouseWheel() const override;
+        void SetOnKeyDown(KeyDownCallback&& callback) override;
+        [[nodiscard]] KeyDownCallback GetOnKeyDown() const override;
+        void SetOnKeyUp(KeyUpCallback&& callback) override;
+        [[nodiscard]] KeyUpCallback GetOnKeyUp() const override;
+        void SetOnKeyTyped(KeyTypedCallback&& callback) override;
+        [[nodiscard]] KeyTypedCallback GetOnKeyTyped() const override;
 
         void SetUserData(void* userData) override;
         [[nodiscard]] void* GetUserData() const override;

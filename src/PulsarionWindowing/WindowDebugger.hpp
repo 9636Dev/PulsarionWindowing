@@ -121,6 +121,14 @@ namespace Pulsarion::Windowing
                     state->OnMaximize(data);
             });
 
+            m_Window->SetOnFullscreen([](void* data, bool fullscreen)
+            {
+                PULSARION_LOG_TRACE("[Window::OnFullscreen] Window fullscreen callback called with fullscreen {0}", fullscreen);
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnFullscreen)
+                    state->OnFullscreen(data, fullscreen);
+            });
+
             m_Window->SetOnRestore([](void* data)
             {
                 PULSARION_LOG_TRACE("[Window::OnRestore] Window restore callback called");
@@ -177,20 +185,28 @@ namespace Pulsarion::Windowing
                     state->OnMouseWheel(data, position, offset);
             });
 
-            m_Window->SetOnKeyDown([](void* data, KeyCode key, Modifier modifier)
+            m_Window->SetOnKeyDown([](void* data, KeyCode key, Modifier modifier, bool repeat)
             {
-                PULSARION_LOG_TRACE("[Window::OnKeyDown] Window key down callback called with key {0}, modifier {1}", static_cast<std::uint16_t>(key), static_cast<std::uint16_t>(modifier));
+                PULSARION_LOG_TRACE("[Window::OnKeyDown] Window key down callback called with [key, modifier, repeat]: {0}, {1}, {2}", KeyCodeToString(key), static_cast<std::uint16_t>(modifier), repeat ? "true" : "false");
                 const auto& state = static_cast<WindowData*>(data);
                 if (state->OnKeyDown)
-                    state->OnKeyDown(data, key, modifier);
+                    state->OnKeyDown(data, key, modifier, repeat);
             });
 
             m_Window->SetOnKeyUp([](void* data, KeyCode key, Modifier modifier)
             {
-                PULSARION_LOG_TRACE("[Window::OnKeyUp] Window key up callback called with key {0}, modifier {1}", static_cast<std::uint16_t>(key), static_cast<std::uint16_t>(modifier));
+                PULSARION_LOG_TRACE("[Window::OnKeyUp] Window key up callback called with key {0}, modifier {1}", KeyCodeToString(key), static_cast<std::uint16_t>(modifier));
                 const auto& state = static_cast<WindowData*>(data);
                 if (state->OnKeyUp)
                     state->OnKeyUp(data, key, modifier);
+            });
+
+            m_Window->SetOnKeyTyped([](void* data, char key, Modifier modifier)
+            {
+                PULSARION_LOG_TRACE("[Window::OnKeyTyped] Window key typed callback called with key {0}, modifier {1}", key, static_cast<std::uint16_t>(modifier));
+                const auto& state = static_cast<WindowData*>(data);
+                if (state->OnKeyTyped)
+                    state->OnKeyTyped(data, key, modifier);
             });
         }
 
@@ -459,6 +475,25 @@ namespace Pulsarion::Windowing
             return m_State.OnMaximize;
         }
 
+        void SetOnFullscreen(Window::FullscreenCallback&& onFullscreen) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetFullscreen] Setting window fullscreen callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnFullscreen(std::move(onFullscreen));
+            else
+                m_State.OnFullscreen = std::move(onFullscreen);
+        }
+
+        [[nodiscard]] Window::FullscreenCallback GetOnFullscreen() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetFullscreen] Getting window fullscreen callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnFullscreen();
+            return m_State.OnFullscreen;
+        }
+
         void SetOnRestore(Window::RestoreCallback&& onRestore) override
         {
             if constexpr (options.LogToggles)
@@ -628,6 +663,26 @@ namespace Pulsarion::Windowing
             if constexpr (!options.LogEvents)
                 return m_Window->GetOnKeyUp();
             return m_State.OnKeyUp;
+        }
+
+
+        void SetOnKeyTyped(Window::KeyTypedCallback&& onKeyTyped) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetOnKeyTyped] Setting window key typed callback");
+            if constexpr (!options.LogEvents)
+                m_Window->SetOnKeyTyped(std::move(onKeyTyped));
+            else
+                m_State.OnKeyTyped = std::move(onKeyTyped);
+        }
+
+        [[nodiscard]] Window::KeyTypedCallback GetOnKeyTyped() const override
+        {
+            if constexpr (options.LogCalls)
+                PULSARION_LOG_TRACE("[Window::GetOnKeyTyped] Getting window key typed callback");
+            if constexpr (!options.LogEvents)
+                return m_Window->GetOnKeyTyped();
+            return m_State.OnKeyTyped;
         }
 
         void SetUserData(void* userData) override

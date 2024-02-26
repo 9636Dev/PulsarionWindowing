@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core.hpp"
+#include <string>
 
 namespace Pulsarion::Windowing
 {
@@ -146,4 +147,6 @@ namespace Pulsarion::Windowing
      * 0x0001 is Shift, 0x0002 is Control, 0x0004 is Alt, 0x0008 is Super.
      */
     using Modifier = std::uint8_t;
+
+    PULSARION_WINDOWING_API std::string KeyCodeToString(KeyCode keyCode);
 };
