@@ -13,9 +13,14 @@
 #endif
 
 #ifdef PULSARION_WINDOWING_USE_ADDITIONAL_FEATURES
-#define PULSARION_WINDOWING_LIMIT_EVENTS // Limit the events without side effects to once per PollEvents call
+// Limit the events without side effects to once per PollEvents call
+#define PULSARION_WINDOWING_LIMIT_EVENTS
+// Automatically manage the lifecycle of the window by creating a singleton static instance and the destructor is called at the end of the program
+#define PULSARION_WINDOWING_AUTO_MANAGE_LIFECYCLE
 #ifdef PULSARION_PLATFORM_WINDOWS
-#define PULSARION_WINDOWING_USE_HIGH_RES_SLEEP // Use high resolution sleep for high frame accuracy by windows
+// Use high resolution sleep for high frame accuracy by windows
+#define PULSARION_WINDOWING_USE_HIGH_RES_SLEEP
 #endif
-#define PULSARION_WINDOWING_USE_BUSY_WAIT // Use busy wait instead of sleeping for high frame accuracy for last ~3ms.
+// Use busy wait instead of sleeping for high frame accuracy for last ~3ms.
+#define PULSARION_WINDOWING_USE_BUSY_WAIT
 #endif

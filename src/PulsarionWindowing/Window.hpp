@@ -24,6 +24,7 @@ namespace Pulsarion::Windowing
         [[nodiscard]] virtual bool ShouldClose() const = 0;
         virtual void SetShouldClose(bool shouldClose) = 0;
         virtual void SetTitle(const std::string& title) = 0;
+        virtual void SetCursorMode(CursorMode mode) = 0;
         [[nodiscard]] virtual std::optional<std::string> GetTitle() const = 0;
         [[nodiscard]] virtual void* GetNativeWindow() const = 0;
 

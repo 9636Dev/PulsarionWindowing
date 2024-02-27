@@ -1,15 +1,31 @@
 #include "AppDelegate.h"
 
-@implementation PulsarionAppDelegate
-- (instancetype)initWithAppState:(std::shared_ptr<Pulsarion::Windowing::CocoaAppState>)initAppState {
-    self = [super init];
-    if (self) {
-        self->appState = initAppState;
-    }
-    return self;
-}
+#include "Application.h"
 
+@implementation PulsarionAppDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    NSMenu *menubar = [[NSMenu alloc] init];
+
+    // Create the application menu
+    NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
+    [menubar addItem:appMenuItem];
+    NSApp.mainMenu = menubar;
+
+    // Create the application menu content
+    NSMenu *appMenu = [[NSMenu alloc] init];
+    NSString *appName = [[NSRunningApplication currentApplication] localizedName];
+    NSString *quitTitle = [NSString stringWithFormat:@"Quit %@", appName];
+
+    // Create Quit menu item with Cmd+Q shortcut
+    NSMenuItem *quitMenuItem = [[NSMenuItem alloc] initWithTitle:quitTitle
+                                                          action:@selector(terminate:)
+                                                   keyEquivalent:@"q"];
+    [quitMenuItem setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
+    [appMenu addItem:quitMenuItem];
+
+    // Attach the application menu
+    appMenuItem.submenu = appMenu;
+
     [NSApp stop:nil]; // We want to handle the event loop ourselves
 }
 
@@ -26,8 +42,8 @@
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
-    appState->ShouldStop = true;
-    appState->OnClose();
+    if ([sender isKindOfClass:[PulsarionApplication class]])
+        ((PulsarionApplication *)sender).IsCloseRequested = true;
     return NSTerminateCancel; // Only terminate app when destructor is called, maybe for fail-safe we add a timeout
 }
 @end

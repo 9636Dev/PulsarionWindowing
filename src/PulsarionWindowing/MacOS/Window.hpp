@@ -17,9 +17,12 @@ namespace Pulsarion::Windowing
         void SetTitle(const std::string& title) override;
         [[nodiscard]] std::optional<std::string> GetTitle() const override;
         [[nodiscard]] void* GetNativeWindow() const override;
+        void SetCursorMode(CursorMode mode) override;
 
+#ifdef PULSARION_WINDOWING_LIMIT_EVENTS
         void LimitEvents(bool limit) override;
         [[nodiscard]] bool IsLimitingEvents() const override;
+#endif
 
         void SetOnClose(CloseCallback&& callback) override;
         [[nodiscard]] CloseCallback GetOnClose() const override;
@@ -63,8 +66,6 @@ namespace Pulsarion::Windowing
         void SetUserData(void* userData) override;
         [[nodiscard]] void* GetUserData() const override;
 
-
-    private:
         class Impl;
         Impl* m_Impl;
     };

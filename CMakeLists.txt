@@ -25,13 +25,14 @@ if (WIN32)
     )
 elseif (APPLE)
     set(PULSARION_WINDOWING_PLATFORM_SPECIFIC_SOURCES
-        src/PulsarionWindowing/MacoS/Lifecycle.h
         src/PulsarionWindowing/MacOS/Lifecycle.mm
         src/PulsarionWindowing/MacOS/Common.hpp
         src/PulsarionWindowing/MacOS/Window.mm
         src/PulsarionWindowing/MacOS/Window.hpp
         src/PulsarionWindowing/MacOS/NativeWindow.mm
         src/PulsarionWindowing/MacOS/NativeWindow.h
+        src/PulsarionWindowing/MacOS/Application.h
+        src/PulsarionWindowing/MacOS/Application.mm
         src/PulsarionWindowing/MacOS/WindowDelegate.mm
         src/PulsarionWindowing/MacOS/WindowDelegate.h
         src/PulsarionWindowing/MacOS/AppDelegate.mm

@@ -291,7 +291,12 @@ namespace Pulsarion::Windowing
             m_Window->SetTitle(title);
         }
 
-
+        inline void SetCursorMode(CursorMode mode) override
+        {
+            if constexpr (options.LogToggles)
+                PULSARION_LOG_TRACE("[Window::SetCursorMode] Setting window cursor mode to {0}", static_cast<std::uint8_t>(mode));
+            m_Window->SetCursorMode(mode);
+        }
 
         [[nodiscard]] inline std::optional<std::string> GetTitle() const override
         {

@@ -2,11 +2,13 @@
 
 #include "PulsarionCore/Assert.hpp"
 
+#include "../Lifecycle.hpp"
+
 #include "Common.hpp"
 #include "AppDelegate.h"
+#include "PulsarionWindowing/MacOS/Application.h"
 #include "WindowDelegate.h"
 #include "NativeWindow.h"
-#include "Lifecycle.h"
 
 #include <Cocoa/Cocoa.h>
 #include <vector>
@@ -18,8 +20,6 @@ namespace Pulsarion::Windowing
 {
     class CocoaWindow::Impl
     {
-    private:
-        static std::size_t s_WindowCount;
     public:
         static CGFloat ConvertCocoaY(CGFloat y, CGFloat height)
         {
@@ -27,29 +27,15 @@ namespace Pulsarion::Windowing
         }
 
         PulsarionWindow* m_Window;
-        PulsarionAppDelegate* m_AppDelegate;
         PulsarionWindowDelegate* m_WindowDelegate;
         PulsarionView* m_View;
         std::shared_ptr<CocoaWindowState> m_State;
-        std::shared_ptr<CocoaAppState> m_AppState;
-
-        void OnApplicationExit() const
-        {
-            m_AppState->ShouldStop = true;
-            m_State->CloseRequested = true;
-            if (m_State->OnClose)
-                m_State->OnClose(m_State->UserData);
-        }
 
         inline explicit Impl(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config)
-            : m_State(std::make_shared<CocoaWindowState>()), m_AppState(std::make_shared<CocoaAppState>())
+            : m_State(std::make_shared<CocoaWindowState>())
         {
-            s_WindowCount++;
-            m_AppState->OnClose = std::bind(&Impl::OnApplicationExit, this);
             @autoreleasepool {
-                [NSApplication sharedApplication];
-                m_AppDelegate = [[PulsarionAppDelegate alloc] initWithAppState:m_AppState];
-                [[NSApplication sharedApplication] setDelegate:m_AppDelegate];
+                bool initialized = Lifecycle::Initialize();
 
                 NSUInteger styleMask = 0;
                 if (HasFlag(styles, WindowStyles::NSTitled))
@@ -77,11 +63,8 @@ namespace Pulsarion::Windowing
                 if (config.StartVisible)
                     SetVisible(true);
 
-                if (![[NSRunningApplication currentApplication] isFinishedLaunching])
-                {
-                    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+                if (initialized) // First time running or the app was terminated
                     [NSApp run];
-                }
             }
         }
 
@@ -92,9 +75,6 @@ namespace Pulsarion::Windowing
                     [m_Window close];
                     [m_Window setDelegate:nil];
                 }
-
-                if (s_WindowCount == 1)
-                    [NSApp terminate:nil];
             }
         }
 
@@ -132,6 +112,7 @@ namespace Pulsarion::Windowing
             static CursorMode currentMode = CursorMode::Normal;
             if (mode == currentMode)
                 return;
+            currentMode = mode;
             @autoreleasepool {
                 if (mode == CursorMode::Normal)
                     [NSCursor unhide];
@@ -142,12 +123,13 @@ namespace Pulsarion::Windowing
 
         inline void PollEvents() const
         {
-            if (m_AppState->ShouldStop)
-                return; // Probably nullptr dereference if we continue
             #ifdef PULSARION_WINDOWING_LIMIT_EVENTS
             m_State->LimitedEvents = 0;
             #endif
             @autoreleasepool {
+                bool appClosed = [NSApp isKindOfClass:[PulsarionApplication class]] && static_cast<PulsarionApplication*>(NSApp).IsCloseRequested;
+                NSLog(@"App closed: %d", appClosed);
+
                 NSEvent* event;
                 do
                 {
@@ -158,9 +140,6 @@ namespace Pulsarion::Windowing
             }
         }
     };
-
-    std::size_t CocoaWindow::Impl::s_WindowCount = 0;
-
     CocoaWindow::CocoaWindow(std::string title, const WindowBounds& bounds, const WindowStyles& styles, const WindowConfig& config)
         : m_Impl(new Impl(std::move(title), bounds, styles, config))
     {
@@ -183,7 +162,8 @@ namespace Pulsarion::Windowing
 
     bool CocoaWindow::ShouldClose() const
     {
-        return m_Impl->m_State->CloseRequested;
+        PULSARION_ASSERT([NSApp isKindOfClass:[PulsarionApplication class]], "NSApp is not of type PulsarionApplication");
+        return static_cast<PulsarionApplication*>(NSApp).IsCloseRequested || m_Impl->m_State->CloseRequested;
     }
 
     void CocoaWindow::SetShouldClose(bool shouldClose)
@@ -206,6 +186,7 @@ namespace Pulsarion::Windowing
         return m_Impl->m_Window;
     }
 
+#ifdef PULSARION_WINDOWING_LIMIT_EVENTS
     void CocoaWindow::LimitEvents(bool limited)
     {
         m_Impl->m_State->LimitEvents = limited;
@@ -215,6 +196,7 @@ namespace Pulsarion::Windowing
     {
         return m_Impl->m_State->LimitEvents;
     }
+#endif
 
     void CocoaWindow::SetOnClose(Window::CloseCallback&& callback)
     {
@@ -414,6 +396,11 @@ namespace Pulsarion::Windowing
     void* CocoaWindow::GetUserData() const
     {
         return m_Impl->m_State->UserData;
+    }
+
+    void CocoaWindow::SetCursorMode(CursorMode mode)
+    {
+        m_Impl->SetCursorMode(mode);
     }
 
 

@@ -239,7 +239,6 @@ static Pulsarion::Windowing::Modifier GetModifier(NSEvent* event)
          state->OnMouseMove(state->UserData, point);
     }
 
-    [super mouseMoved:event];
 }
 
 - (void)scrollWheel:(NSEvent *)event {
@@ -249,7 +248,6 @@ static Pulsarion::Windowing::Modifier GetModifier(NSEvent* event)
          state->OnMouseWheel(state->UserData, point, { static_cast<float>(event.scrollingDeltaX), static_cast<float>(event.scrollingDeltaY) });
     }
 
-    [super scrollWheel:event];
 }
 
 - (void)flagsChanged:(NSEvent *)event {
@@ -328,7 +326,6 @@ static Pulsarion::Windowing::Modifier GetModifier(NSEvent* event)
         break;
     }
 
-    [super flagsChanged:event];
 }
 
 - (void)keyDown:(NSEvent *)event {
@@ -348,16 +345,12 @@ static Pulsarion::Windowing::Modifier GetModifier(NSEvent* event)
 
     if (state->OnKeyDown)
         state->OnKeyDown(state->UserData, ConvertMacKeyCodeToKeyCode([event keyCode]), modifier, [event isARepeat]);
-
-    [super keyDown:event];
 }
 
 - (void)keyUp:(NSEvent *)event {
     Pulsarion::Windowing::Modifier modifier = GetModifier(event);
     if (state->OnKeyUp)
         state->OnKeyUp(state->UserData, ConvertMacKeyCodeToKeyCode([event keyCode]), modifier);
-
-    [super keyUp:event];
 }
 
 @end
