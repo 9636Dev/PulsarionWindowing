@@ -146,6 +146,14 @@ namespace Pulsarion::Windowing
         SetWindowText(m_WindowHandle, title.c_str());
     }
 
+    void WindowsWindow::SetCursorMode(CursorMode mode)
+    {
+        if (mode == CursorMode::Normal)
+            ShowCursor(TRUE);
+        else
+            ShowCursor(FALSE);
+    }
+
     std::optional<std::string> WindowsWindow::GetTitle() const
     {
         int size = GetWindowTextLength(m_WindowHandle);
@@ -377,8 +385,16 @@ namespace Pulsarion::Windowing
                 modifier |= 0x04;
             if (GetKeyState(VK_LWIN) & 0x8000 || GetKeyState(VK_RWIN) & 0x8000)
                 modifier |= 0x08;
+            bool repeat = lParam & (1 << 30);
             if (data->OnKeyDown)
-                data->OnKeyDown(data->UserData, ConvertFromVirtualKey(wParam), modifier);
+                data->OnKeyDown(data->UserData, ConvertFromVirtualKey(wParam), modifier, repeat);
+            if (data->OnKeyTyped)
+            {
+                auto c = MapVirtualKeyA(wParam, MAPVK_VK_TO_CHAR);
+                // Convert to char
+                if (c >= 32 && c <= 126)
+                    data->OnKeyTyped(data->UserData, static_cast<char>(c), modifier);
+            }
             break;
         }
         case WM_KEYUP: {

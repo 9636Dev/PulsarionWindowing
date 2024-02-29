@@ -21,6 +21,7 @@ namespace Pulsarion::Windowing
         [[nodiscard]] std::optional<std::string> GetTitle() const override;
         inline void PollEvents() override;
         [[nodiscard]] inline bool ShouldClose() const override;
+        inline void SetCursorMode(CursorMode mode) override;
         inline void SetShouldClose(bool shouldClose) override;
         [[nodiscard]] void* GetNativeWindow() const override { return m_WindowHandle; }
 
@@ -41,6 +42,9 @@ namespace Pulsarion::Windowing
         [[nodiscard]] MinimizeCallback GetOnMinimize() const override { return m_Data.OnMinimize; }
         void SetOnMaximize(MaximizeCallback&& onMaximize) override { m_Data.OnMaximize = std::move(onMaximize); }
         [[nodiscard]] MaximizeCallback GetOnMaximize() const override { return m_Data.OnMaximize; }
+        // We need to handle this ourselves when we click 'F11' or Call Fullscreen function (in the future)
+        void SetOnFullscreen(FullscreenCallback&& onFullscreen) override { m_Data.OnFullscreen = std::move(onFullscreen); }
+        [[nodiscard]] FullscreenCallback GetOnFullscreen() const override { return m_Data.OnFullscreen; }
         void SetOnRestore(RestoreCallback&& onRestore) override { m_Data.OnRestore = std::move(onRestore); }
         [[nodiscard]] RestoreCallback GetOnRestore() const override { return m_Data.OnRestore; }
         void SetOnMouseEnter(MouseEnterCallback&& onMouseEnter) override { m_Data.OnMouseEnter = std::move(onMouseEnter); }
@@ -59,6 +63,8 @@ namespace Pulsarion::Windowing
         [[nodiscard]] KeyDownCallback GetOnKeyDown() const override { return m_Data.OnKeyDown; }
         void SetOnKeyUp(KeyUpCallback&& onKeyUp) override { m_Data.OnKeyUp = std::move(onKeyUp); }
         [[nodiscard]] KeyUpCallback GetOnKeyUp() const override { return m_Data.OnKeyUp; }
+        void SetOnKeyTyped(KeyTypedCallback&& onKeyTyped) override { m_Data.OnKeyTyped = std::move(onKeyTyped); }
+        [[nodiscard]] KeyTypedCallback GetOnKeyTyped() const override { return m_Data.OnKeyTyped; }
 
         void SetUserData(void* userData) override { m_Data.UserData = userData; }
         [[nodiscard]] void* GetUserData() const override { return m_Data.UserData; }
