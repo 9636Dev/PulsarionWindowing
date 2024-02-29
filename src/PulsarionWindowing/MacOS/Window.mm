@@ -70,11 +70,12 @@ namespace Pulsarion::Windowing
 
         ~Impl()
         {
+            if (m_Window == nil)
+                return;
             @autoreleasepool {
-                if (m_Window != nil) {
-                    [m_Window close];
-                    [m_Window setDelegate:nil];
-                }
+                [m_Window close];
+                [m_Window setDelegate:nil];
+                [m_Window setContentView:nil];
             }
         }
 
