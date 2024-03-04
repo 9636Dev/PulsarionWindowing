@@ -128,9 +128,6 @@ namespace Pulsarion::Windowing
             m_State->LimitedEvents = 0;
             #endif
             @autoreleasepool {
-                bool appClosed = [NSApp isKindOfClass:[PulsarionApplication class]] && static_cast<PulsarionApplication*>(NSApp).IsCloseRequested;
-                NSLog(@"App closed: %d", appClosed);
-
                 NSEvent* event;
                 do
                 {
