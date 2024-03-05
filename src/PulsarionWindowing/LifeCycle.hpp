@@ -10,15 +10,16 @@ namespace Pulsarion::Windowing::Lifecycle
     struct PULSARION_WINDOWING_API Lifecycle
     {
     private:
-        friend bool Initialize();
-        friend void Destroy();
+        PULSARION_WINDOWING_API friend bool Initialize();
+        PULSARION_WINDOWING_API friend void Destroy();
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         static std::unique_ptr<Lifecycle> s_Instance;
         Lifecycle();
     public:
         ~Lifecycle();
     };
 #endif
-    bool Initialize();
-    void Destroy();;
+    PULSARION_WINDOWING_API bool Initialize();
+    PULSARION_WINDOWING_API void Destroy();;
 
 }

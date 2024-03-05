@@ -22,6 +22,7 @@ if (WIN32)
     set(PULSARION_WINDOWING_PLATFORM_SPECIFIC_SOURCES
         src/PulsarionWindowing/Windows/Window.cpp
         src/PulsarionWindowing/Windows/Window.hpp
+        src/PulsarionWindowing/Windows/Lifecycle.cpp
     )
 elseif (APPLE)
     set(PULSARION_WINDOWING_PLATFORM_SPECIFIC_SOURCES
